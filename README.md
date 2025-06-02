@@ -9,8 +9,6 @@ gds2pgen: Format Conversion from PLINK2 PGEN to GDS
 
 This package provides functions for format conversion from [bgen](http://bgenformat.org) files to [SeqArray GDS](https://github.com/zhengxwen/SeqArray) files.
 
-* gds2bgen has been moved to https://github.com/CoreArray/gds2bgen from https://github.com/zhengxwen/gds2bgen since Feb 2025.
-
 
 ## Version
 

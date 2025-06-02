@@ -1,16 +1,16 @@
-\name{seqBGEN2GDS}
-\alias{seqBGEN2GDS}
-\title{Reformat BGEN Files}
+\name{seqPGEN2GDS}
+\alias{seqPGEN2GDS}
+\title{Reformat PLINK2 PGEN files}
 \description{
-    Reformats bgen files to GDS format.
+    Reformats PLINK2 pgen files to GDS format.
 }
 
 \usage{
-seqBGEN2GDS(bgen.fn, out.fn, storage.option="LZMA_RA", float.type=
-    c("packed8", "packed16", "single", "double", "sp.real32", "sp.real64"),
-    geno=FALSE, dosage=TRUE, prob=FALSE, ignore.chr.prefix=c("chr", "0"),
-    start=1L, count=-1L, sample.id=NULL, optimize=TRUE, digest=TRUE,
-    parallel=FALSE, verbose=TRUE)
+seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
+    compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
+    start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
+    include.pheno=TRUE, optimize=TRUE, digest=TRUE, parallel=FALSE,
+    verbose=TRUE)
 }
 
 \arguments{
@@ -65,18 +65,17 @@ seqBGEN2GDS(bgen.fn, out.fn, storage.option="LZMA_RA", float.type=
 }
 \author{Xiuwen Zheng}
 \seealso{
-    \code{\link{seqBGEN_Info}}
 }
 
 \examples{
-bgen.fn <- system.file("extdata", "example.8bits.bgen", package="gds2bgen")
+pgen_fn <- system.file("extdata", "plink2_gen.pgen", package="gds2pgen")
 
-seqBGEN2GDS(bgen.fn, "test.gds")
+seqPGEN2GDS(pgen_fn, out.gdsfn="test.gds")
 
 # delete the temporary file
 unlink("test.gds", force=TRUE)
 }
 
 \keyword{GDS}
-\keyword{BGEN}
+\keyword{PLINK2}
 \keyword{utilities}
