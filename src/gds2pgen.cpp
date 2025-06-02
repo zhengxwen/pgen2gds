@@ -28,7 +28,7 @@
 #undef class
 #undef private
 
-#include <fstream>
+#include <vector>
 
 using namespace std;
 using namespace CoreArray;
