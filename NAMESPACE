@@ -1,0 +1,14 @@
+# Load the shared object
+useDynLib(gds2pgen,
+    SEQ_PGEN_Allele_Import
+)
+
+# Export the following names
+exportPattern("^seq*")
+
+# Import
+import(methods)
+import(gdsfmt)
+import(pgenlibr)
+importFrom(utils, flush.console)
+importFrom(SeqArray, seqStorageOption, seqParallel)

@@ -1,0 +1,19 @@
+Package: gds2pgen
+Type: Package
+Title: Format Conversion from PLINK2 PGEN to GDS
+Version: 0.99.0
+Date: 2025-06-02
+Depends: R (>= 4.0.0), methods, gdsfmt (>= 1.24.0), pgenlibr
+Imports: SeqArray (>= 1.24.0)
+LinkingTo: gdsfmt
+Suggests: parallel, digest, crayon, RUnit, knitr, BiocGenerics
+Authors@R: c(person("Xiuwen", "Zheng", role=c("aut", "cre"),
+    email="zhengx@u.washington.edu", comment=c(ORCID="0000-0002-1390-0708")))
+Description: Provides functions for the format conversion from PLINK2 pgen
+    files to SeqArray GDS files.
+License: GPL-3
+SystemRequirements: C++11
+VignetteBuilder: knitr
+BugReports: http://github.com/zhengxwen/gds2pgen/issues
+URL: http://github.com/zhengxwen/gds2pgen
+biocViews: Infrastructure, DataImport
