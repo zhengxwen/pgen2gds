@@ -225,28 +225,16 @@ void CProgress::ShowProgress()
 extern "C"
 {
 
-/// return true, if matching
-inline static bool StrCaseCmp(const char *prefix, const char *txt, size_t nmax)
-{
-	while (*prefix && *txt && nmax>0)
-	{
-		if (toupper(*prefix) != toupper(*txt))
-			return false;
-		prefix ++; txt ++; nmax --;
-	}
-	return (*prefix == 0);
-}
-
-
 /// Import a pgen file
 COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
-	SEXP R_read_fc, SEXP R_allele_buf, SEXP R_ii, SEXP R_env,
+	SEXP R_read_fc, SEXP R_allele_buf, SEXP R_ii, SEXP R_phase_buf, SEXP R_env,
 	SEXP gds_root, SEXP Start, SEXP Count, SEXP progfile, SEXP Verbose)
 {
 	int start = Rf_asInteger(Start);
 	if (start < 1) start = 1;
 	int count = Rf_asInteger(Count);
 	const bool verbose = Rf_asLogical(Verbose)==TRUE;
+	const C_UInt8 ONE = 1;
 
 	COREARRAY_TRY
 
@@ -260,6 +248,7 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
 		const int num_ploidy = pdim[0], num_sample = pdim[1];
 		const size_t ntot = num_ploidy * num_sample;
 		int *ptr_allele_buf = INTEGER(R_allele_buf);
+		int *ptr_phase_buf = INTEGER(R_phase_buf);
 
 		// progress information
 		CProgress prog((verbose || !Rf_isNull(progfile)) ? count : -1, progfile);
@@ -278,8 +267,8 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
 			}
 			// append genotypes
 			GDS_Array_AppendData(varGeno, ntot, ptr_allele_buf, svInt32);
-			const C_UInt8 v = 1;
-			GDS_Array_AppendData(varGenoLen, 1, &v, svUInt8);
+			GDS_Array_AppendData(varGenoLen, 1, &ONE, svUInt8);
+			GDS_Array_AppendData(varPhase, num_sample, ptr_phase_buf, svInt32);
 			// update progress
 			prog.Forward(1);
 		}
@@ -294,7 +283,7 @@ COREARRAY_DLL_EXPORT void R_init_gds2pgen(DllInfo *info)
 	#define CALL(name, num)	   { #name, (DL_FUNC)&name, num }
 	static R_CallMethodDef callMethods[] =
 	{
-		CALL(SEQ_PGEN_Allele_Import, 9),
+		CALL(SEQ_PGEN_Allele_Import, 10),
 		{ NULL, NULL, 0 }
 	};
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);

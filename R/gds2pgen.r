@@ -289,8 +289,12 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         compress=compress.geno)
     n_i <- add.gdsn(ngen, "@data", storage="uint8", compress=compress.annotation,
         visible=FALSE)
+    n_p <- add.gdsn(npha, "data", storage="bit1", valdim=c(nsamp, 0L),
+        compress=compress.geno)
+
     # progress bar
     progfile <- file(paste0(out.gdsfn, ".progress"), "wt")
+    flush(progfile)
     on.exit({
         close(progfile)
         unlink(paste0(out.gdsfn, ".progress"), force=TRUE)
@@ -300,10 +304,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     {
         # process genotypes
         buf <- IntAlleleCodeBuf(pgen)  # an integer matrix
+        buf2 <- BoolBuf(pgen)  # a logical vector
         ii <- integer(1L)
-        read_fc <- quote(ReadAlleles(pgen, buf, ii))
+        read_fc <- quote(ReadAlleles(pgen, buf, ii, buf2))
         # call C
-        .Call(SEQ_PGEN_Allele_Import, read_fc, buf, ii, new.env(),
+        .Call(SEQ_PGEN_Allele_Import, read_fc, buf, ii, buf2, new.env(),
             dstfile$root, start, count, progfile, verbose)
         # close the nodes
         remove(read_fc, buf, ii)
@@ -314,13 +319,13 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         SeqArray:::.DigestCode(n_i, digest, FALSE)
 
     } else {
-        varnm <- c("genotype/data", "genotype/@data")
+        varnm <- c("genotype/data", "genotype/@data", "phase/data")
         # "phase/data"
         # open all temporary files
         for (fn in ptmpfn)
         {
             if (verbose)
-                cat("        opening ", sQuote(basename(fn)), " ...", sep="")
+                cat("        adding ", sQuote(basename(fn)), " ...", sep="")
             # open the gds file
             tmpgds <- openfn.gds(fn)
             # merge variables
@@ -335,11 +340,18 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         unlink(ptmpfn, force=TRUE)
     }
 
+    # additional nodes for genotype
     n <- add.gdsn(ngen, "extra.index", storage="int32", valdim=c(3L,0L),
         compress=compress.geno, closezip=TRUE)
     put.attr.gdsn(n, "R.colnames",
         c("sample.index", "variant.index", "length"))
     add.gdsn(ngen, "extra", storage="int16", compress=compress.geno, closezip=TRUE)
+    # additional nodes for phase data
+    n <- add.gdsn(npha, "extra.index", storage="int32", valdim=c(3L,0L),
+        compress=compress.geno, closezip=TRUE)
+    put.attr.gdsn(n, "R.colnames",
+        c("sample.index", "variant.index", "length"))
+    add.gdsn(npha, "extra", storage="bit1", compress=compress.geno, closezip=TRUE)
 
     # add annotation/qual
     n <- add.gdsn(nann, "qual", storage="float", compress=compress.annotation)
