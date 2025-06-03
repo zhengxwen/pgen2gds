@@ -12,7 +12,6 @@ Authors@R: c(person("Xiuwen", "Zheng", role=c("aut", "cre"),
 Description: Provides functions for the format conversion from PLINK2 pgen
     files to SeqArray GDS files.
 License: GPL-3
-SystemRequirements: C++11
 VignetteBuilder: knitr
 BugReports: http://github.com/zhengxwen/gds2pgen/issues
 URL: http://github.com/zhengxwen/gds2pgen

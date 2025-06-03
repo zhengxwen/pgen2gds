@@ -185,8 +185,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             # conversion in parallel
             seqParallel(parallel, NULL,
                 FUN = function(pgen.fn, pvar.fn, psam.fn,
-                    compress.geno, compress.annotation, optimize,
-                    ptmpfn, psplit)
+                    compress.geno, compress.annotation, ptmpfn, psplit)
                 {
                     # the process id, starting from one
                     i <- SeqArray:::process_index
@@ -194,14 +193,14 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                         compress.geno = compress.geno,
                         compress.annotation = compress.annotation,
                         start = psplit[[1L]][i], count = psplit[[2L]][i],
-                        optimize = optimize, digest = FALSE, parallel = FALSE,
+                        optimize = FALSE, digest = FALSE, parallel = FALSE,
                         verbose = FALSE
                     )
                 }, split = "none",
                 pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
                 compress.geno=compress.geno,
                 compress.annotation=compress.annotation,
-                optimize=optimize, ptmpfn=ptmpfn, psplit=psplit
+                ptmpfn=ptmpfn, psplit=psplit
             )
             if (verbose)
             {
@@ -325,7 +324,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         for (fn in ptmpfn)
         {
             if (verbose)
-                cat("        adding ", sQuote(basename(fn)), " ...", sep="")
+                cat("        adding ", sQuote(basename(fn)))
             # open the gds file
             tmpgds <- openfn.gds(fn)
             # merge variables
