@@ -103,8 +103,10 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     {
         .cat(date())
         .cat("PLINK2 PGEN to SeqArray GDS:")
-        .cat("    pgen file: ", sQuote(pgen.fn))
-        .cat("    pvar file: ", sQuote(pvar.fn))
+        .cat("    pgen file: ", SeqArray:::.pretty_size(file.size(pgen.fn)))
+        .cat("        ", pgen.fn)
+        .cat("    pvar file: ", SeqArray:::.pretty_size(file.size(pvar.fn)))
+        .cat("        ", pvar.fn)
     }
     pgen.fn <- normalizePath(pgen.fn, mustWork=FALSE)
     pvar.fn <- normalizePath(pvar.fn, mustWork=FALSE)
@@ -133,7 +135,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # read psam file
     if (verbose)
     {
-        .cat("    psam file: ", sQuote(psam.fn))
+        .cat("    psam file: ", SeqArray:::.pretty_size(file.size(psam.fn)))
+        .cat("        ", psam.fn)
         .cat("    # of samples: ", nsamp)
         .cat("    # of variants: ", nvar)
     }
