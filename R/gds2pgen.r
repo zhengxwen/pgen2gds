@@ -24,6 +24,8 @@
 
 .cat <- function(...) cat(..., "\n", sep="")
 
+tm <- function() strftime(Sys.time(), "%Y-%m-%d %H:%M:%S")
+
 
 #############################################################
 # Format conversion from BGEN to GDS
@@ -161,7 +163,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         if (count >= pnum)
         {
             fn <- sub("^([^.]*).*", "\\1", basename(out.gdsfn))
-            psplit <- SeqArray:::.file_split(count, pnum, start, FALSE)
+            psplit <- SeqArray:::.file_split(count, pnum, start)
             # need unique temporary file names
             ptmpfn <- character()
             while (length(ptmpfn) < pnum)
@@ -283,7 +285,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
     # add nodes for genotypes
     if (verbose)
-        cat("    genotype ...\n")
+        .cat("    genotype [", tm(), "] ...")
     n_g <- add.gdsn(ngen, "data", storage="bit2", valdim=c(2L, nsamp, 0L),
         compress=compress.geno)
     n_i <- add.gdsn(ngen, "@data", storage="uint8", compress=compress.annotation,
@@ -324,7 +326,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         for (fn in ptmpfn)
         {
             if (verbose)
-                cat("        adding ", sQuote(basename(fn)))
+                cat("        adding", sQuote(basename(fn)))
             # open the gds file
             tmpgds <- openfn.gds(fn)
             # merge variables
@@ -332,7 +334,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                 append.gdsn(index.gdsn(dstfile, nm), index.gdsn(tmpgds, nm))
             # close the file
             closefn.gds(tmpgds)
-            if (verbose) cat(" [done]\n")
+            if (verbose) .cat(" [", tm(), " done]")
         }
 
         # remove temporary files

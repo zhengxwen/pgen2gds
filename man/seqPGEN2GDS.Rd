@@ -65,6 +65,7 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 }
 \author{Xiuwen Zheng}
 \seealso{
+    \code{\link{seqReadPVAR}}
 }
 
 \examples{
