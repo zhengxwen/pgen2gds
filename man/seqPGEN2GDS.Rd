@@ -9,39 +9,25 @@
 seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    include.pheno=TRUE, optimize=TRUE, digest=TRUE, parallel=FALSE,
-    verbose=TRUE)
+    optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
 }
 
 \arguments{
-    \item{bgen.fn}{the file name of a bgen file}
-    \item{out.fn}{the file name of output GDS file}
-    \item{storage.option}{specify the storage and compression option,
-        "ZIP_RA" (\code{\link{seqStorageOption}("ZIP_RA")}); or
-        "LZMA_RA" to use LZMA compression algorithm with higher compression
-        ratio by default; or "LZ4_RA" to use an extremely fast compression and
-        decompression algorithm. "ZIP_RA.max", "LZMA_RA.max" and "LZ4_RA.max"
-        correspond to the algorithms with a maximum compression level; the
-        suffix "_RA" indicates that fine-level random access is available; see
-        more details at \code{\link{seqStorageOption}}}
-    \item{float.type}{"packed8": use packedreal8u to store real numbers (dense
-        matrix), "packed16": use packedreal16u for dense matrix; "single":
-        single-precision floating-point numbers (dense matrix);
-        "double": double-precision floating-point numbers (dense matrix);
-        "sp.real32": single-precision sparse matrix;
-        "sp.real64": double-precision sparse matrix}
-    \item{geno}{if TRUE, store integer genotypes}
-    \item{dosage}{if TRUE, store floating-point dosages in "annotation/format/DS",
-        i.e., alternative allele dosages}
-    \item{prob}{if TRUE, store floating-point probabilities in "annotation/format/GP",
-        i.e., prob of heterozygous geno, prob of homozygous alternative allele}
+    \item{pgen.fn}{a file name for the pgen file}
+    \item{pvar.fn}{a file name for the pvar file, or missing}
+    \item{psam.fn}{a file name for the psam file, or missing}
+    \item{out.gdsfn}{the file name of output GDS file}
+    \item{compress.geno}{the compression method for "genotype"; optional
+        values are defined in the function \code{add.gdsn}}
+    \item{compress.annotation}{the compression method for the GDS variables,
+        except "genotype"; optional values are defined in the function
+        \code{add.gdsn}}
     \item{ignore.chr.prefix}{a vector of character, indicating the prefix of
         chromosome which should be ignored, e.g., \code{"chr"}; it is not
         case-sensitive}
-    \item{start}{the starting variant if importing part of VCF files}
-    \item{count}{the maximum count of variant if importing part of VCF files,
-        -1 indicates importing to the end}
-    \item{sample.id}{specify the sample IDs}
+    \item{start}{the starting variant if importing part of the pgen file}
+    \item{count}{the maximum count of variant if importing part of the pgen
+        file, -1 indicates importing to the end}
     \item{optimize}{if \code{TRUE}, optimize the access efficiency by calling
         \code{\link{cleanup.gds}}}
     \item{digest}{a logical value (TRUE/FALSE) or a character ("md5", "sha1",

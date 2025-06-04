@@ -74,8 +74,7 @@ seqReadPVAR <- function(pvar, sel=NULL)
 seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    include.pheno=TRUE, optimize=TRUE, digest=TRUE, parallel=FALSE,
-    verbose=TRUE)
+    optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
 {
     # check
     stopifnot(is.character(pgen.fn), length(pgen.fn)==1L)
@@ -96,7 +95,6 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     stopifnot(is.numeric(count), length(count)==1L)
     stopifnot(is.character(ignore.chr.prefix))
     stopifnot(is.logical(optimize), length(optimize)==1L)
-    stopifnot(is.logical(include.pheno) | is.character(include.pheno))
 
     # open pgen file
     if (verbose)
