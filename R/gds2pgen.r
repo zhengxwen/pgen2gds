@@ -74,7 +74,7 @@ seqReadPVAR <- function(pvar, sel=NULL)
 seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
+    save.phase=FALSE, optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
 {
     # check
     stopifnot(is.character(pgen.fn), length(pgen.fn)==1L)
@@ -94,6 +94,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     stopifnot(is.numeric(start), length(start)==1L)
     stopifnot(is.numeric(count), length(count)==1L)
     stopifnot(is.character(ignore.chr.prefix))
+    stopifnot(is.logical(save.phase), length(save.phase)==1L)
     stopifnot(is.logical(optimize), length(optimize)==1L)
 
     # open pgen file
@@ -152,6 +153,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
     if (verbose)
     {
+        if (isTRUE(save.phase))
+            cat("    saving phase info\n")
         cat("    Output:\n        ", out.gdsfn, "\n", sep="")
         if (start!=1L || count!=nvar)
             cat("        (starting from ", start, ", count: ", count, "\n", sep="")
@@ -306,19 +309,30 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     {
         # process genotypes
         buf <- IntAlleleCodeBuf(pgen)  # an integer matrix
-        buf2 <- BoolBuf(pgen)  # a logical vector
         ii <- integer(1L)
-        read_fc <- quote(ReadAlleles(pgen, buf, ii, buf2))
+        if (isTRUE(save.phase))
+        {
+            buf2 <- BoolBuf(pgen)  # a logical vector
+            read_fc <- quote(ReadAlleles(pgen, buf, ii, buf2))
+        } else {
+            buf2 <- NULL  # no saving phase
+            read_fc <- quote(ReadAlleles(pgen, buf, ii))
+        }
         # call C
         .Call(SEQ_PGEN_Allele_Import, read_fc, buf, ii, buf2, new.env(),
             dstfile$root, start, count, progfile, verbose)
         # close the nodes
-        remove(read_fc, buf, ii)
+        remove(read_fc, buf, ii, buf2)
         readmode.gdsn(n_g)
         if (verbose) cat("      ")
         SeqArray:::.DigestCode(n_g, digest, verbose)
         readmode.gdsn(n_i)
         SeqArray:::.DigestCode(n_i, digest, FALSE)
+        if (!isTRUE(save.phase))
+            SeqArray:::.append_rep_gds(n_p, raw(1L), as.double(count)*nsamp)
+        readmode.gdsn(n_p)
+        if (verbose) cat("      ")
+        SeqArray:::.DigestCode(n_p, digest, verbose)
 
     } else {
         varnm <- c("genotype/data", "genotype/@data", "phase/data")

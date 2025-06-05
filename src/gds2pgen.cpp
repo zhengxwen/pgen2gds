@@ -248,7 +248,8 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
 		const int num_ploidy = pdim[0], num_sample = pdim[1];
 		const size_t ntot = num_ploidy * num_sample;
 		int *ptr_allele_buf = INTEGER(R_allele_buf);
-		int *ptr_phase_buf = INTEGER(R_phase_buf);
+		int *ptr_phase_buf = NULL;
+		if (!Rf_isNull(R_phase_buf)) ptr_phase_buf = INTEGER(R_phase_buf);
 
 		// progress information
 		CProgress prog((verbose || !Rf_isNull(progfile)) ? count : -1, progfile);
@@ -268,7 +269,11 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
 			// append genotypes
 			GDS_Array_AppendData(varGeno, ntot, ptr_allele_buf, svInt32);
 			GDS_Array_AppendData(varGenoLen, 1, &ONE, svUInt8);
-			GDS_Array_AppendData(varPhase, num_sample, ptr_phase_buf, svInt32);
+			if (ptr_phase_buf)
+			{
+				GDS_Array_AppendData(varPhase, num_sample, ptr_phase_buf,
+					svInt32);
+			}
 			// update progress
 			prog.Forward(1);
 		}
