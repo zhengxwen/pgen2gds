@@ -26,6 +26,21 @@
 
 tm <- function() strftime(Sys.time(), "%Y-%m-%d %H:%M:%S")
 
+append_fc_gds <- function(nd, start, count, type, fc, fc2=identity)
+{
+    last <- start + count
+    i <- start
+    while (i < last)
+    {
+        cnt <- min(i+10000L, last) - i
+        s <- vapply(seq.int(i, length.out=cnt), fc, type)
+        append.gdsn(nd, fc2(s))
+        i <- i + cnt
+    }
+    readmode.gdsn(nd)
+    invisible()
+}
+
 
 #############################################################
 # Format conversion from BGEN to GDS
@@ -129,7 +144,6 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     } else {
     	count <- min(start + count, nvar + 1L) - start
     }
-    last <- start + count
 
     # read psam file
     if (verbose)
@@ -160,6 +174,12 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             cat("        (starting from ", start, ", count: ", count, "\n", sep="")
     }
 
+    allele_max_cnt <- GetMaxAlleleCt(pvar)
+    if (verbose)
+        .cat("        maximum allele count per variant: ", allele_max_cnt)
+    if (allele_max_cnt > 2L)
+        stop("Only support biallelic loci!")
+
     # the number of parallel tasks
     pnum <- SeqArray:::.NumParallel(parallel)
     if (pnum > 1L)
@@ -187,6 +207,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                     sep="")
                 flush.console()
             }
+            # reset memory
+            gc(FALSE, reset=TRUE, full=TRUE)
 
             # conversion in parallel
             seqParallel(parallel, NULL,
@@ -243,31 +265,37 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         compress=compress.annotation, closezip=TRUE)
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
 
-    # add chromosome, position, allele
-    if (verbose) cat("    chromosome, position, allele, rsid ...\n")
-    v <- seqReadPVAR(pvar, seq.int(start, length.out=count))
-    allele_max_cnt <- GetMaxAlleleCt(pvar)
-    if (verbose)
-        .cat("        maximum allele count per variant: ", allele_max_cnt)
-    ## chrom
+    # add chromosome
+    if (verbose) cat("    chromosome  ")
     if (length(ignore.chr.prefix))
     {
-        s <- paste0("^(", paste(ignore.chr.prefix, collapse="|"), ")")
-        v$chrom <- gsub(s, "", v$chrom)
+        ignore.chr.prefix <- paste0("^(",
+            paste(ignore.chr.prefix, collapse="|"), ")")
     }
-    n <- add.gdsn(dstfile, "chromosome", v$chrom, compress=compress.annotation,
-        closezip=TRUE)
-    if (verbose) cat("        ")
+    n <- add.gdsn(dstfile, "chromosome", storage="string",
+        compress=compress.annotation)
+    append_fc_gds(n, start, count, "", function(i) GetVariantChrom(pvar, i),
+        function(s) {
+            if (length(ignore.chr.prefix)) s <- gsub(ignore.chr.prefix, "", s)
+            s
+        })
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
-    ## pos
-    n <- add.gdsn(dstfile, "position", v$pos, compress=compress.annotation,
-        closezip=TRUE)
-    if (verbose) cat("        ")
+
+    # add position
+    if (verbose) cat("    position  ")
+    n <- add.gdsn(dstfile, "position", storage="int32",
+        compress=compress.annotation)
+    append_fc_gds(n, start, count, 0L, function(i) GetVariantPos(pvar, i))
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
-    ## allele
-    n <- add.gdsn(dstfile, "allele", v$allele, compress=compress.annotation,
-        closezip=TRUE)
-    if (verbose) cat("        ")
+
+    # add allele
+    if (verbose) cat("    allele  ")
+    n <- add.gdsn(dstfile, "allele", storage="string",
+        compress=compress.annotation)
+    append_fc_gds(n, start, count, "", function(i) {
+            paste(vapply(seq_len(GetAlleleCt(pvar, i)), function(j)
+                GetAlleleCode(pvar, i, j), ""), collapse=",")
+        })
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
 
     # add a folder for genotypes & phase
@@ -277,13 +305,12 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     npha <- addfolder.gdsn(dstfile, "phase")
     # add annotation folder
     nann <- addfolder.gdsn(dstfile, "annotation")
-    # add annotation/id
-    n <- add.gdsn(nann, "id", v$rsid, compress=compress.annotation,
-        closezip=TRUE)
-    if (verbose) cat("        ")
+    # add annotation/id (rsid)
+    if (verbose) cat("    annotation/id  ")
+    n <- add.gdsn(nann, "id", storage="string", compress=compress.annotation)
+    append_fc_gds(n, start, count, "", function(i) GetVariantId(pvar, i))
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
-    # remove the variant v to reduce memory usage
-    remove(v)
+
     # RLE-coded chromosome
     SeqArray:::.optim_chrom(dstfile)
 
@@ -329,10 +356,13 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         readmode.gdsn(n_i)
         SeqArray:::.DigestCode(n_i, digest, FALSE)
         if (!isTRUE(save.phase))
+        {
             SeqArray:::.append_rep_gds(n_p, raw(1L), as.double(count)*nsamp)
+        } else {
+            if (verbose) cat("      ")
+        }
         readmode.gdsn(n_p)
-        if (verbose) cat("      ")
-        SeqArray:::.DigestCode(n_p, digest, verbose)
+        SeqArray:::.DigestCode(n_p, digest, verbose && isTRUE(save.phase))
 
     } else {
         varnm <- c("genotype/data", "genotype/@data", "phase/data")
