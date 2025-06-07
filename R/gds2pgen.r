@@ -129,8 +129,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     pvar <- pgenlibr::NewPvar(pvar.fn)
     pgen <- pgenlibr::NewPgen(pgen.fn, pvar=pvar)
     on.exit({
-    	if (!is.null(pvar)) ClosePgen(pgen)
-    	if (!is.null(pgen)) ClosePvar(pvar)
+    	if (!is.null(pgen)) ClosePgen(pgen)
+    	if (!is.null(pvar)) ClosePvar(pvar)
     })
     nvar <- GetVariantCt(pgen)
     nsamp <- GetRawSampleCt(pgen)
@@ -207,7 +207,10 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                     sep="")
                 flush.console()
             }
+
             # reset memory
+            ClosePgen(pgen); pgen <- NULL
+            ClosePvar(pvar); pvar <- NULL
             gc(FALSE, reset=TRUE, full=TRUE)
 
             # conversion in parallel
@@ -232,9 +235,12 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             )
             if (verbose)
             {
-                cat("    done splitting (", date(), ").\n", sep="")
+                cat("    done splitting (", date(), ")\n", sep="")
                 cat("    --------\n")
             }
+
+            # reopen the file
+            pvar <- pgenlibr::NewPvar(pvar.fn)
 
         } else {
             pnum <- 1L
