@@ -1,6 +1,6 @@
 # ===========================================================================
 #
-# gds2pgen.r: Format Conversion from PLINK2 PGEN to GDS
+# pgen2gds.r: Format Conversion from PLINK2 PGEN to GDS
 #
 # Copyright (C) 2025    Xiuwen Zheng (zhengx@u.washington.edu)
 #
@@ -8,13 +8,13 @@
 # under the terms of the GNU General Public License Version 3 as
 # published by the Free Software Foundation.
 #
-# gds2pgen is distributed in the hope that it will be useful, but
+# pgen2gds is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License along
-# with gds2pgen.
+# with pgen2gds.
 # If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -220,7 +220,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                 {
                     # the process id, starting from one
                     i <- SeqArray:::process_index
-                    gds2pgen::seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, ptmpfn[i],
+                    pgen2gds::seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, ptmpfn[i],
                         compress.geno = compress.geno,
                         compress.annotation = compress.annotation,
                         start = psplit[[1L]][i], count = psplit[[2L]][i],

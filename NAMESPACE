@@ -1,5 +1,5 @@
 # Load the shared object
-useDynLib(gds2pgen,
+useDynLib(pgen2gds,
     SEQ_PGEN_Allele_Import
 )
 

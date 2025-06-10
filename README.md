@@ -1,4 +1,4 @@
-gds2pgen: Format Conversion from PLINK2 PGEN to GDS
+pgen2gds: Format Conversion from PLINK2 PGEN to GDS
 ===
 
 ![GPLv3](http://www.gnu.org/graphics/gplv3-88x31.png)
@@ -48,35 +48,7 @@ Zheng X, Gogarten S, Lawrence M, Stilp A, Conomos M, Weir BS, Laurie C, Levine D
 ## Examples
 
 ```R
-library(gds2bgen)
-
-seqBGEN_Info()  # bgen library version
-## "bgen_lib_v1.1.8"
-
-bgen_fn <- system.file("extdata", "example.8bits.bgen", package="gds2bgen")
-# or bgen_fn <- "your_bgen_file.bgen"
-seqBGEN_Info(bgen_fn)
-
-## File: gds2bgen/extdata/example.8bits.bgen
-## # of samples: 500
-## # of variants: 199
-## Compression method: zlib
-## Layout version: v1.2
-## Unphased: TRUE
-## # of bits: 8
-## Ploidy: 2
-## sample id: sample_001, sample_002, sample_003, sample_004, ...
-
-
-# example.8bits.bgen ==> example.gds, using 4 cores
-seqBGEN2GDS(bgen_fn, "example.gds",
-    storage.option="LZMA_RA",  # compression option, e.g., ZIP_RA for zlib or LZ4_RA for LZ4
-    float.type="packed8",      # 8-bit packed real numbers
-    geno=FALSE,     # 2-bit integer genotypes, stored in 'genotype/data'
-    dosage=TRUE,    # numeric alternative allele dosages, stored in 'annotation/format/DS'
-    prob=FALSE,     # numeric genotype probabilities, stored in 'annotation/format/GP'
-    parallel=4      # the number of cores
-)
+library(pgen2gds)
 
 
 # show file structure

@@ -1,5 +1,5 @@
 //
-// R_gds2pgen.c: Link to the gdsfmt package
+// R_pgen2gds.c: Link to the gdsfmt package
 //
 
 #include <R_GDS.h>

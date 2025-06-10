@@ -30,7 +30,7 @@ seqReadPVAR(pvar, sel=NULL)
 }
 
 \examples{
-pvar_fn <- system.file("extdata", "plink2_gen.pvar", package="gds2pgen")
+pvar_fn <- system.file("extdata", "plink2_gen.pvar", package="pgen2gds")
 
 head(seqReadPVAR(pvar_fn))
 }

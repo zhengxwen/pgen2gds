@@ -55,7 +55,7 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 }
 
 \examples{
-pgen_fn <- system.file("extdata", "plink2_gen.pgen", package="gds2pgen")
+pgen_fn <- system.file("extdata", "plink2_gen.pgen", package="pgen2gds")
 
 seqPGEN2GDS(pgen_fn, out.gdsfn="test.gds")
 

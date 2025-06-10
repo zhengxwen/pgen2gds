@@ -1,20 +1,20 @@
 // ===========================================================
 //
-// gds2pgen.cpp: Format Conversion from PLINK2 PGEN to GDS
+// pgen2gds.cpp: Format Conversion from PLINK2 PGEN to GDS
 //
 // Copyright (C) 2025    Xiuwen Zheng (zhengx@u.washington.edu)
 //
-// gds2pgen is free software: you can redistribute it and/or modify it
+// pgen2gds is free software: you can redistribute it and/or modify it
 // under the terms of the GNU General Public License Version 3 as
 // published by the Free Software Foundation.
 //
-// gds2pgen is distributed in the hope that it will be useful, but
+// pgen2gds is distributed in the hope that it will be useful, but
 // WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License along
-// with gds2pgen.
+// with pgen2gds.
 // If not, see <http://www.gnu.org/licenses/>.
 
 
@@ -283,7 +283,7 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
 
 
 /// initialize the package
-COREARRAY_DLL_EXPORT void R_init_gds2pgen(DllInfo *info)
+COREARRAY_DLL_EXPORT void R_init_pgen2gds(DllInfo *info)
 {
 	#define CALL(name, num)	   { #name, (DL_FUNC)&name, num }
 	static R_CallMethodDef callMethods[] =
