@@ -171,7 +171,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             cat("    saving phase info\n")
         cat("    Output:\n        ", out.gdsfn, "\n", sep="")
         if (start!=1L || count!=nvar)
-            cat("        (starting from ", start, ", count: ", count, "\n", sep="")
+            cat("        (starting from ", start, ", count: ", count, ")\n", sep="")
     }
 
     allele_max_cnt <- GetMaxAlleleCt(pvar)
@@ -330,12 +330,18 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     n_p <- add.gdsn(npha, "data", storage="bit1", valdim=c(nsamp, 0L),
         compress=compress.geno)
 
-    # progress bar
-    progfile <- file(paste0(out.gdsfn, ".progress"), "wt")
+    # progress information
+    progfilename <- paste0(out.gdsfn, ".progress.txt")
+    progfile <- file(progfilename, "wt")
+    writeLines(paste("#", tm()), progfile)
+    writeLines(paste("Input:", basename(pgen.fn)), progfile)
+    if (start!=1L || count!=nvar)
+        writeLines(paste0("    start: ", start, ", count: ", count), progfile)
+    writeLines(paste("Output:", basename(out.gdsfn)), progfile)
     flush(progfile)
     on.exit({
         close(progfile)
-        unlink(paste0(out.gdsfn, ".progress"), force=TRUE)
+        unlink(progfilename, force=TRUE)
     }, add=TRUE)
 
     if (pnum <= 1L)
@@ -378,18 +384,24 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         {
             if (verbose)
                 cat("        adding", sQuote(basename(fn)))
+            writeLines(paste("Adding", basename(fn)), progfile)
             # open the gds file
             tmpgds <- openfn.gds(fn)
+            n <- objdesp.gdsn(index.gdsn(tmpgds, "variant.id"))$dim
             # merge variables
             for (nm in varnm)
                 append.gdsn(index.gdsn(dstfile, nm), index.gdsn(tmpgds, nm))
             # close the file
             closefn.gds(tmpgds)
             if (verbose) .cat(" [", tm(), " done]")
+            writeLines(paste0("    [", tm(), ", ",
+                prettyNum(n, big.mark=",", scientific=FALSE),
+                " variants added]"), progfile)
         }
 
         # remove temporary files
         unlink(ptmpfn, force=TRUE)
+        writeLines(paste("Done. #", tm()), progfile)
     }
 
     # additional nodes for genotype
