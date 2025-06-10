@@ -9,7 +9,7 @@
 seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    save.phase=FALSE, optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
+    optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
 }
 
 \arguments{
@@ -25,8 +25,6 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     \item{ignore.chr.prefix}{a vector of character, indicating the prefix of
         chromosome which should be ignored, e.g., \code{"chr"}; it is not
         case-sensitive}
-    \item{save.phase}{if \code{TRUE}, use \code{ReadAlleles} to read phase
-        data; the phase info in pgen may not be useful}
     \item{start}{the starting variant if importing part of the pgen file}
     \item{count}{the maximum count of variant if importing part of the pgen
         file, -1 indicates importing to the end}
