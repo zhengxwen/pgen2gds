@@ -225,13 +225,26 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                 {
                     # the process id, starting from one
                     i <- SeqArray:::process_index
-                    pgen2gds::seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, ptmpfn[i],
-                        compress.geno = compress.geno,
-                        compress.annotation = compress.annotation,
-                        start = psplit[[1L]][i], count = psplit[[2L]][i],
-                        optimize = FALSE, digest = FALSE, parallel = FALSE,
-                        verbose = FALSE
-                    )
+                    tryCatch(
+                    {
+                        pgen2gds::seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn,
+                            ptmpfn[i], compress.geno=compress.geno,
+                            compress.annotation=compress.annotation,
+                            start=psplit[[1L]][i], count=psplit[[2L]][i],
+                            optimize=FALSE, digest=FALSE, parallel=FALSE,
+                            verbose=FALSE)
+                    }, error = function(e) {
+                        # capture full traceback
+                        trace <- capture.output({
+                            cat("Error: ", e$message, "\n", sep="")
+                            traceback()
+                        })
+                        con <- file(paste0(ptmpfn[i], ".progress.txt"), open="at")
+                        writeLines(trace, con)
+                        close(con)
+                        stop(e$message)
+                    })
+                    invisible()  # return
                 }, split = "none",
                 pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
                 compress.geno=compress.geno,
