@@ -124,7 +124,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     }
     pgen.fn <- normalizePath(pgen.fn, mustWork=FALSE)
     pvar.fn <- normalizePath(pvar.fn, mustWork=FALSE)
-    psam.fn <- normalizePath(psam.fn, mustWork=FALSE)
+    # psam.fn <- normalizePath(psam.fn, mustWork=FALSE)
     pvar <- pgen <- NULL
     pvar <- pgenlibr::NewPvar(pvar.fn)
     pgen <- pgenlibr::NewPgen(pgen.fn, pvar=pvar)
