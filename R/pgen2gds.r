@@ -150,8 +150,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     {
         .cat("    psam file: ", SeqArray:::.pretty_size(file.size(psam.fn)))
         .cat("        ", psam.fn)
-        .cat("    # of samples: ", nsamp)
-        .cat("    # of variants: ", nvar)
+        .cat("        reading ...")
     }
     fam <- read.table(psam.fn, header=TRUE, comment.char="",
         stringsAsFactors=FALSE)
@@ -167,6 +166,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
     if (verbose)
     {
+        .cat("    # of samples: ", nsamp)
+        .cat("    # of variants: ", nvar)
         if (isTRUE(save.phase))
             cat("    saving phase info\n")
         cat("    Output:\n        ", out.gdsfn, "\n", sep="")
