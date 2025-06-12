@@ -112,10 +112,15 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     stopifnot(is.logical(optimize), length(optimize)==1L)
     save.phase <- FALSE
 
+    # check files
+    if (!file.exists(pgen.fn)) stop("No file ", sQuote(pgen.fn), ".")
+    if (!file.exists(pvar.fn)) stop("No file ", sQuote(pvar.fn), ".")
+    if (!file.exists(psam.fn)) stop("No file ", sQuote(psam.fn), ".")
+
     # open pgen file
     if (verbose)
     {
-        .cat(date())
+        .cat("# ", date())
         .cat("PLINK2 PGEN to SeqArray GDS:")
         .cat("    pgen file: ", SeqArray:::.pretty_size(file.size(pgen.fn)))
         .cat("        ", pgen.fn)
@@ -124,7 +129,6 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     }
     pgen.fn <- normalizePath(pgen.fn, mustWork=FALSE)
     pvar.fn <- normalizePath(pvar.fn, mustWork=FALSE)
-    # psam.fn <- normalizePath(psam.fn, mustWork=FALSE)
     pvar <- pgen <- NULL
     pvar <- pgenlibr::NewPvar(pvar.fn)
     pgen <- pgenlibr::NewPgen(pgen.fn, pvar=pvar)
@@ -334,6 +338,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # progress information
     progfilename <- paste0(out.gdsfn, ".progress.txt")
     progfile <- file(progfilename, "wt")
+    progfile_to_rm <- FALSE
     writeLines(paste("#", tm()), progfile)
     writeLines(paste("Input:", basename(pgen.fn)), progfile)
     if (start!=1L || count!=nvar)
@@ -342,7 +347,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     flush(progfile)
     on.exit({
         close(progfile)
-        unlink(progfilename, force=TRUE)
+        if (progfile_to_rm) unlink(progfilename, force=TRUE)
     }, add=TRUE)
 
     if (pnum <= 1L)
@@ -441,10 +446,10 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     addfolder.gdsn(nann, "format")
 
     # optimize access efficiency
-    if (verbose)
-        cat("Done.\n", date(), "\n", sep="")
+    if (verbose) .cat("Done.  # ", date())
     closefn.gds(dstfile)
     dstfile <- NULL
+    progfile_to_rm <- TRUE
     if (optimize)
     {
         if (verbose)
