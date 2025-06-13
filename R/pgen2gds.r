@@ -120,7 +120,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # open pgen file
     if (verbose)
     {
-        .cat("# ", date())
+        .cat("##< ", tm())
         .cat("PLINK2 PGEN to SeqArray GDS:")
         .cat("    pgen file: ", SeqArray:::.pretty_size(file.size(pgen.fn)))
         .cat("        ", pgen.fn)
@@ -304,6 +304,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             s
         })
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
+    # RLE-coded chromosome
+    SeqArray:::.optim_chrom(dstfile)
 
     # add position
     if (verbose) cat("    position  ")
@@ -334,9 +336,6 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     n <- add.gdsn(nann, "id", storage="string", compress=compress.annotation)
     append_fc_gds(n, start, count, "", function(i) GetVariantId(pvar, i))
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
-
-    # RLE-coded chromosome
-    SeqArray:::.optim_chrom(dstfile)
 
     # add nodes for genotypes
     if (verbose)
@@ -459,7 +458,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     addfolder.gdsn(nann, "format")
 
     # optimize access efficiency
-    if (verbose) .cat("Done.  # ", date())
+    if (verbose)
+        if (optimize) .cat("Done.  # ", tm()) else cat("Done.\n")
     closefn.gds(dstfile)
     dstfile <- NULL
     progfile_to_rm <- TRUE
@@ -468,8 +468,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         if (verbose)
             cat("Optimize the access efficiency ...\n")
         cleanup.gds(out.gdsfn, verbose=verbose)
-        if (verbose) cat(date(), "\n", sep="")
     }
+    if (verbose) .cat("##> ", tm())
 
     # output
     invisible(normalizePath(out.gdsfn))
