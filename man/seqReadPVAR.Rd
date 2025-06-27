@@ -2,7 +2,7 @@
 \alias{seqReadPVAR}
 \title{Read PLINK2 pvar file}
 \description{
-    Read PLINK2 variant pvar file.
+    Read PLINK2 pvar file for variants
 }
 
 \usage{

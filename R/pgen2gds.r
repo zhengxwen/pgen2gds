@@ -26,6 +26,24 @@
 
 tm <- function() strftime(Sys.time(), "%Y-%m-%d %H:%M:%S")
 
+pretty_size <- function(x)
+{
+    stopifnot(is.numeric(x), length(x)==1L)
+    if (is.na(x) || !is.finite(x))
+        "NA"
+    else if (x >= 1024^4)
+        sprintf("%.1fT", x/1024^4)
+    else if (x >= 1024^3)
+        sprintf("%.1fG", x/1024^3)
+    else if (x >= 1024^2)
+        sprintf("%.1fM", x/1024^2)
+    else if (x >= 1024)
+        sprintf("%.1fK", x/1024)
+    else
+        sprintf("%gB", x)
+}
+
+# append to a gds node using the data return from a user-defined function
 append_fc_gds <- function(nd, start, count, type, fc, fc2=identity)
 {
     last <- start + count
@@ -43,7 +61,7 @@ append_fc_gds <- function(nd, start, count, type, fc, fc2=identity)
 
 
 #############################################################
-# Format conversion from BGEN to GDS
+# Read PLINK2 pvar file and return a data.frame
 #
 seqReadPVAR <- function(pvar, sel=NULL)
 {
@@ -110,7 +128,6 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     stopifnot(is.numeric(count), length(count)==1L)
     stopifnot(is.character(ignore.chr.prefix))
     stopifnot(is.logical(optimize), length(optimize)==1L)
-    save.phase <- FALSE
 
     # check files
     if (!file.exists(pgen.fn)) stop("No file ", sQuote(pgen.fn), ".")
@@ -122,9 +139,9 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     {
         .cat("##< ", tm())
         .cat("PLINK2 PGEN to SeqArray GDS:")
-        .cat("    pgen file (", SeqArray:::.pretty_size(file.size(pgen.fn)), "):")
+        .cat("    pgen file (", pretty_size(file.size(pgen.fn)), "):")
         .cat("        ", pgen.fn)
-        .cat("    pvar file (", SeqArray:::.pretty_size(file.size(pvar.fn)), "):")
+        .cat("    pvar file (", pretty_size(file.size(pvar.fn)), "):")
         .cat("        ", pvar.fn)
     }
     pgen.fn <- normalizePath(pgen.fn, mustWork=FALSE)
@@ -152,7 +169,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # read psam file
     if (verbose)
     {
-        .cat("    psam file (", SeqArray:::.pretty_size(file.size(psam.fn)), "):")
+        .cat("    psam file (", pretty_size(file.size(psam.fn)), "):")
         .cat("        ", psam.fn)
         .cat("        reading ...")
     }
@@ -167,13 +184,13 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     } else {
         stop("Sample IDs in PLINK2 PGEN are not unique (IID column)!")
     }
+    if (nsamp != nrow(fam))
+        stop("Inconsistent number of rows in psam file.")
 
     if (verbose)
     {
         .cat("    # of samples: ", nsamp)
         .cat("    # of variants: ", nvar)
-        if (isTRUE(save.phase))
-            cat("    saving phase info\n")
         cat("    Output:\n        ", out.gdsfn, "\n", sep="")
         if (start!=1L || count!=nvar)
             cat("        (starting from ", start, ", count: ", count, ")\n", sep="")
@@ -367,6 +384,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         # process genotypes
         buf <- IntAlleleCodeBuf(pgen)  # an integer matrix
         ii <- integer(1L)
+        save.phase <- FALSE
         if (isTRUE(save.phase))
         {
             buf2 <- BoolBuf(pgen)  # a logical vector
