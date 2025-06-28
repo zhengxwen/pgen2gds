@@ -196,12 +196,6 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             cat("        (starting from ", start, ", count: ", count, ")\n", sep="")
     }
 
-    allele_max_cnt <- GetMaxAlleleCt(pvar)
-    if (verbose)
-        .cat("        maximum allele count per variant: ", allele_max_cnt)
-    if (allele_max_cnt > 2L)
-        stop("Only support biallelic loci!")
-
     # the number of parallel tasks
     pnum <- SeqArray:::.NumParallel(parallel)
     if (pnum > 1L)
@@ -270,7 +264,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             )
             if (verbose)
             {
-                cat("    done splitting (", date(), ")\n", sep="")
+                cat("    done splitting (", tm(), ")\n", sep="")
                 cat("    --------\n")
             }
 
