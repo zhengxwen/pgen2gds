@@ -7,7 +7,7 @@ pgen2gds: Format Conversion from PLINK2 PGEN to GDS
 
 ## Description
 
-This package provides functions for format conversion from [bgen](http://bgenformat.org) files to [SeqArray GDS](https://github.com/zhengxwen/SeqArray) files.
+This package provides functions for format conversion from [PLINK2 pgen](https://www.cog-genomics.org/plink/2.0) files to [SeqArray GDS](https://www.bioconductor.org/packages/SeqArray) files.
 
 
 ## Version
@@ -17,25 +17,19 @@ v0.99.0
 
 ## Package Maintainer
 
-Dr. Xiuwen Zheng ([zhengx@u.washington.edu](zhengx@u.washington.edu))
+Dr. Xiuwen Zheng
 
 
 ## Installation
 
-Requires R (≥ v3.5.0), [gdsfmt](http://www.bioconductor.org/packages/gdsfmt) (≥ v1.20.0), [SeqArray](http://www.bioconductor.org/packages/SeqArray) (≥ v1.24.0)
+Requires R (≥ v4.0.0), [gdsfmt](http://www.bioconductor.org/packages/gdsfmt), [SeqArray](http://www.bioconductor.org/packages/SeqArray)
 
 * Installation from Github:
 ```R
 library("devtools")
-install_github("CoreArray/gds2bgen")
+install_github("CoreArray/pgen2gds")
 ```
 The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](http://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
-
-
-## Copyright Notice
-
-This package includes the sources of the bgen library (https://enkre.net/cgi-bin/code/bgen/dir?ci=trunk), Boost (the C++
-libraries, https://www.boost.org) and Zstandard (https://zstd.net).
 
 
 ## Citations for GDS
@@ -50,31 +44,24 @@ Zheng X, Gogarten S, Lawrence M, Stilp A, Conomos M, Weir BS, Laurie C, Levine D
 ```R
 library(pgen2gds)
 
+# Example file
+pgen_fn <- system.file("extdata", "plink2_gen.pgen", package="pgen2gds")
 
-# show file structure
-library(SeqArray)
-(f <- seqOpen("example.gds"))
-seqClose(f)
-
-## File: example.gds (137.7K)
-## +    [  ] *
-## |--+ description   [  ] *
-## |--+ sample.id   { Str8 500 LZMA_ra(7.02%), 393B } *
-## |--+ variant.id   { Int32 199 LZMA_ra(33.9%), 277B } *
-## |--+ position   { Int32 199 LZMA_ra(60.6%), 489B } *
-## |--+ chromosome   { Str8 199 LZMA_ra(15.7%), 101B } *
-## |--+ allele   { Str8 199 LZMA_ra(11.8%), 101B } *
-## |--+ genotype   [  ] *
-## |--+ phase   [  ]
-## |--+ annotation   [  ]
-## |  |--+ id   { Str8 199 LZMA_ra(18.6%), 321B } *
-## |  |--+ qual   { Float32 199 LZMA_ra(11.8%), 101B } *
-## |  |--+ filter   { Int32 199 LZMA_ra(11.3%), 97B } *
-## |  |--+ info   [  ]
-## |  \--+ format   [  ]
-## |     |--+ DS   [  ] *
-## |     |  \--+ data   { PackedReal8U 500x199 LZMA_ra(55.6%), 54.0K } *
-## \--+ sample.annotation   [  ]
+# Format conversion
+seqPGEN2GDS(pgen_fn, out.gdsfn="test.gds")
+## PLINK2 PGEN to SeqArray GDS:
+##     pgen file (14.3K):
+##         plink2_gen.pgen
+##     pvar file (12.7K):
+##         plink2_gen.pvar
+##     psam file (34.3K):
+##         plink2_gen.psam
+##         reading ...
+##     # of samples: 2504
+##     # of variants: 482
+##     Output:
+##         test.gds
+## ...
 ```
 
 
@@ -83,3 +70,5 @@ seqClose(f)
 [seqVCF2GDS()](https://rdrr.io/bioc/SeqArray/man/seqVCF2GDS.html) in the [SeqArray](https://bioconductor.org/packages/SeqArray) package, conversion from VCF files to GDS files.
 
 [seqBED2GDS()](https://rdrr.io/bioc/SeqArray/man/seqBED2GDS.html) in the [SeqArray](https://bioconductor.org/packages/SeqArray) package, conversion from PLINK BED files to GDS files.
+
+[seqBGEN2GDS()](https://github.com/CoreArray/gds2bgen) conversion from BGEN files to GDS files.

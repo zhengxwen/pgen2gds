@@ -2,7 +2,7 @@
 //
 // pgen2gds.cpp: Format Conversion from PLINK2 PGEN to GDS
 //
-// Copyright (C) 2025    Xiuwen Zheng (zhengx@u.washington.edu)
+// Copyright (C) 2025    Xiuwen Zheng
 //
 // pgen2gds is free software: you can redistribute it and/or modify it
 // under the terms of the GNU General Public License Version 3 as
