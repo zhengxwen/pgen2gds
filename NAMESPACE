@@ -1,6 +1,6 @@
 # Load the shared object
 useDynLib(pgen2gds,
-    SEQ_PGEN_Allele_Import
+    SEQ_PGEN_Geno_Import
 )
 
 # Export the following names

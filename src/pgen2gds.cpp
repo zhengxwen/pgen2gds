@@ -226,15 +226,15 @@ extern "C"
 {
 
 /// Import a pgen file
-COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
-	SEXP R_read_fc, SEXP R_allele_buf, SEXP R_ii, SEXP R_phase_buf, SEXP R_env,
-	SEXP gds_root, SEXP Start, SEXP Count, SEXP progfile, SEXP Verbose)
+COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
+	SEXP R_read_gt_fc, SEXP R_allele_num_fc, SEXP R_buf, SEXP R_ii, SEXP R_ia,
+	SEXP R_env, SEXP gds_root, SEXP Start, SEXP Count, SEXP progfile,
+	SEXP Verbose)
 {
 	int start = Rf_asInteger(Start);
 	if (start < 1) start = 1;
 	int count = Rf_asInteger(Count);
 	const bool verbose = Rf_asLogical(Verbose)==TRUE;
-	const C_UInt8 ONE = 1;
 
 	COREARRAY_TRY
 
@@ -242,14 +242,11 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
 		PdAbstractArray Root = GDS_R_SEXP2Obj(gds_root, FALSE);
 		PdAbstractArray varGeno = GDS_Node_Path(Root, "genotype/data", FALSE);
 		PdAbstractArray varGenoLen = GDS_Node_Path(Root, "genotype/@data", FALSE);
-		PdAbstractArray varPhase = GDS_Node_Path(Root, "phase/data", FALSE);
 
-		const int *pdim = INTEGER(GET_DIM(R_allele_buf));
-		const int num_ploidy = pdim[0], num_sample = pdim[1];
-		const size_t ntot = num_ploidy * num_sample;
-		int *ptr_allele_buf = INTEGER(R_allele_buf);
-		int *ptr_phase_buf = NULL;
-		if (!Rf_isNull(R_phase_buf)) ptr_phase_buf = INTEGER(R_phase_buf);
+		const size_t num_sample = Rf_length(R_buf);
+		int *ptr_gt_buf = INTEGER(R_buf);
+		vector<C_UInt8> gt(2*num_sample);
+		const size_t gt_sz = gt.size();
 
 		// progress information
 		CProgress prog((verbose || !Rf_isNull(progfile)) ? count : -1, progfile);
@@ -257,23 +254,55 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Allele_Import(
 		// for-loop
 		for (size_t idx=start; count > 0; idx++, count--)
 		{
-			// call ReadAlleles
+			// call GetAlleleCt(pvar, ii)
 			INTEGER(R_ii)[0] = idx;
-			Rf_eval(R_read_fc, R_env);
-			// replace missing value
-			for (size_t i=0; i < ntot; i++)
+			int allele_cnt = Rf_asInteger(Rf_eval(R_allele_num_fc, R_env));
+			if (allele_cnt > 255)
+				throw "PLINK2 does not support > 255 alleles at a site.";
+			// set genotypes
+			memset(&gt[0], 0, gt.size());
+			for (int allele_i=1; allele_i<allele_cnt; allele_i++)
 			{
-				if (ptr_allele_buf[i] == NA_INTEGER)
-					ptr_allele_buf[i] = 3;
+				// call ReadHardcalls(pgen, buf, ii, ia)
+				INTEGER(R_ia)[0] = allele_i + 1;
+				Rf_eval(R_read_gt_fc, R_env);
+				// find non-zero
+				for (size_t i=0; i < num_sample; i++)
+				{
+					switch(ptr_gt_buf[i])
+					{
+						case 0: break;
+						case 1:
+							{
+								C_UInt8 &g1 = gt[2*i+0], &g2 = gt[2*i+1];
+								if (g1==0)
+									g1 = allele_i;
+								else if (g1!=0xFF && g2==0)
+									g2 = allele_i;
+								break;
+							}
+						case 2:
+							gt[2*i+0] = gt[2*i+1] = allele_i; break;
+						default:
+							// NA, missing genotype
+							gt[2*i+0] = gt[2*i+1] = 0xFF;
+					}
+				}
 			}
 			// append genotypes
-			GDS_Array_AppendData(varGeno, ntot, ptr_allele_buf, svInt32);
-			GDS_Array_AppendData(varGenoLen, 1, &ONE, svUInt8);
-			if (ptr_phase_buf)
-			{
-				GDS_Array_AppendData(varPhase, num_sample, ptr_phase_buf,
-					svInt32);
-			}
+			C_UInt8 num_bit2 = 1;
+			do {
+				GDS_Array_AppendData(varGeno, gt_sz, &gt[0], svUInt8);
+				allele_cnt -= 4;
+				if (allele_cnt >= 0)
+				{
+					num_bit2 ++;
+					for (size_t i=0; i < gt_sz; i++) gt[i] >>= 2;
+				}
+			} while(allele_cnt >= 0);
+			// append the number of bit2 rows
+			GDS_Array_AppendData(varGenoLen, 1, &num_bit2, svUInt8);
+
 			// update progress
 			prog.Forward(1);
 		}
@@ -288,7 +317,7 @@ COREARRAY_DLL_EXPORT void R_init_pgen2gds(DllInfo *info)
 	#define CALL(name, num)	   { #name, (DL_FUNC)&name, num }
 	static R_CallMethodDef callMethods[] =
 	{
-		CALL(SEQ_PGEN_Allele_Import, 10),
+		CALL(SEQ_PGEN_Geno_Import, 10),
 		{ NULL, NULL, 0 }
 	};
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);

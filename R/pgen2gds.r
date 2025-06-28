@@ -382,35 +382,25 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     if (pnum <= 1L)
     {
         # process genotypes
-        buf <- IntAlleleCodeBuf(pgen)  # an integer matrix
-        ii <- integer(1L)
-        save.phase <- FALSE
-        if (isTRUE(save.phase))
-        {
-            buf2 <- BoolBuf(pgen)  # a logical vector
-            read_fc <- quote(ReadAlleles(pgen, buf, ii, buf2))
-        } else {
-            buf2 <- NULL  # no saving phase
-            read_fc <- quote(ReadAlleles(pgen, buf, ii))
-        }
+        buf <- IntBuf(pgen)  # an integer vector
+        ii <- integer(1L)    # variant index
+        ia <- integer(1L)    # allele index
+        read_gt_fc <- quote(ReadHardcalls(pgen, buf, ii, ia))
+        allele_num_fc <- quote(GetAlleleCt(pvar, ii))
         # call C
-        .Call(SEQ_PGEN_Allele_Import, read_fc, buf, ii, buf2, new.env(),
-            dstfile$root, start, count, progfile, verbose)
+        .Call(SEQ_PGEN_Geno_Import, read_gt_fc, allele_num_fc, buf, ii, ia,
+            new.env(), dstfile$root, start, count, progfile, verbose)
+        # remove temporary variables
+        remove(read_gt_fc, allele_num_fc, buf, ii, ia)
         # close the nodes
-        remove(read_fc, buf, ii, buf2)
         readmode.gdsn(n_g)
         if (verbose) cat("      ")
         SeqArray:::.DigestCode(n_g, digest, verbose)
         readmode.gdsn(n_i)
         SeqArray:::.DigestCode(n_i, digest, FALSE)
-        if (!isTRUE(save.phase))
-        {
-            SeqArray:::.append_rep_gds(n_p, raw(1L), as.double(count)*nsamp)
-        } else {
-            if (verbose) cat("      ")
-        }
+        SeqArray:::.append_rep_gds(n_p, raw(1L), as.double(count)*nsamp)
         readmode.gdsn(n_p)
-        SeqArray:::.DigestCode(n_p, digest, verbose && isTRUE(save.phase))
+        SeqArray:::.DigestCode(n_p, digest, FALSE)
 
     } else {
         varnm <- c("genotype/data", "genotype/@data", "phase/data")
