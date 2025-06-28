@@ -114,8 +114,23 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     if (missing(pvar.fn) && missing(psam.fn))
     {
         fn <- gsub("\\.pgen$", "", pgen.fn, ignore.case=TRUE)
-        pvar.fn <- paste0(fn, ".pvar")
-        psam.fn <- paste0(fn, ".psam")
+        # set pvar file
+        pvar.fn <- paste0(fn, ".pvar.zst")
+        if (!file.exists(pvar.fn))
+        {
+            pvar.fn <- paste0(fn, ".pvar.gz")
+            if (!file.exists(pvar.fn))
+                pvar.fn <- paste0(fn, ".pvar")
+        }
+        # set psam file
+        psam.fn <- paste0(fn, ".psam.zst")
+        if (!file.exists(psam.fn))
+        {
+            psam.fn <- paste0(fn, ".psam.gz")
+            if (!file.exists(psam.fn))
+                psam.fn <- paste0(fn, ".psam")
+        }
+        # check pgen
         if (!grepl("\\.pgen$", pgen.fn, ignore.case=TRUE))
             pgen.fn <- paste0(fn, ".pgen")
     }
