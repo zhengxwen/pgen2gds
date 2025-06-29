@@ -420,6 +420,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             if (verbose)
                 cat("        adding", sQuote(basename(fn)))
             writeLines(paste("Adding", basename(fn)), progfile)
+            flush(progfile)
             # open the gds file
             tmpgds <- openfn.gds(fn)
             n <- objdesp.gdsn(index.gdsn(tmpgds, "variant.id"))$dim
@@ -432,6 +433,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             writeLines(paste0("    [", tm(), ", ",
                 prettyNum(n, big.mark=",", scientific=FALSE),
                 " variants added]"), progfile)
+            flush(progfile)
         }
 
         # remove temporary files
