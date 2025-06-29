@@ -245,8 +245,10 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 
 		const size_t num_sample = Rf_length(R_buf);
 		int *ptr_gt_buf = INTEGER(R_buf);
-		vector<C_UInt8> gt(2*num_sample);
+		vector<C_Int8> gt(2*num_sample);
 		const size_t gt_sz = gt.size();
+		size_t nbit = 0;
+		const C_Int8 NA = 0xFF;
 
 		// progress information
 		CProgress prog((verbose || !Rf_isNull(progfile)) ? count : -1, progfile);
@@ -274,10 +276,10 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 						case 0: break;
 						case 1:
 							{
-								C_UInt8 &g1 = gt[2*i+0], &g2 = gt[2*i+1];
+								C_Int8 &g1 = gt[2*i+0], &g2 = gt[2*i+1];
 								if (g1==0)
 									g1 = allele_i;
-								else if (g1!=0xFF && g2==0)
+								else if (g1!=NA && g2==0)
 									g2 = allele_i;
 								break;
 							}
@@ -285,21 +287,26 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 							gt[2*i+0] = gt[2*i+1] = allele_i; break;
 						default:
 							// NA, missing genotype
-							gt[2*i+0] = gt[2*i+1] = 0xFF;
+							gt[2*i+0] = gt[2*i+1] = NA;
 					}
 				}
 			}
 			// append genotypes
 			C_UInt8 num_bit2 = 1;
-			do {
+			bool flag = true;
+			while(flag)
+			{
 				GDS_Array_AppendData(varGeno, gt_sz, &gt[0], svUInt8);
+				nbit += gt_sz * 2;
 				allele_cnt -= 4;
-				if (allele_cnt >= 0)
+				flag = (allele_cnt>=0) || (count==1 && (nbit & 0x7));
+				// the last one should be padded to a byte
+				if (flag)
 				{
 					num_bit2 ++;
 					for (size_t i=0; i < gt_sz; i++) gt[i] >>= 2;
 				}
-			} while(allele_cnt >= 0);
+			}
 			// append the number of bit2 rows
 			GDS_Array_AppendData(varGenoLen, 1, &num_bit2, svUInt8);
 
