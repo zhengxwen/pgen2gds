@@ -261,8 +261,9 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 			int allele_cnt = Rf_asInteger(Rf_eval(R_allele_num_fc, R_env));
 			if (allele_cnt > 255)
 				throw "PLINK2 does not support > 255 alleles at a site.";
-			// set genotypes
+			// initialize all zeros
 			memset(&gt[0], 0, gt.size());
+			// set non-zero genotypes
 			for (int allele_i=1; allele_i<allele_cnt; allele_i++)
 			{
 				// call ReadHardcalls(pgen, buf, ii, ia)
@@ -292,7 +293,7 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 				}
 			}
 			// append genotypes
-			C_UInt8 num_bit2 = 1;
+			C_UInt8 num_bits = 1;
 			bool flag = true;
 			while(flag)
 			{
@@ -303,12 +304,12 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 				// the last one should be padded to a byte
 				if (flag)
 				{
-					num_bit2 ++;
+					num_bits ++;
 					for (size_t i=0; i < gt_sz; i++) gt[i] >>= 2;
 				}
 			}
 			// append the number of bit2 rows
-			GDS_Array_AppendData(varGenoLen, 1, &num_bit2, svUInt8);
+			GDS_Array_AppendData(varGenoLen, 1, &num_bits, svUInt8);
 
 			// update progress
 			prog.Forward(1);
