@@ -59,6 +59,39 @@ append_fc_gds <- function(nd, start, count, type, fc, fc2=identity)
     invisible()
 }
 
+# read a psam file
+read_psam <- function(psam.fn)
+{
+    s <- readLines(psam.fn)
+    # remove ## line(s)
+    x <- grepl("^##", s)
+    if (any(x)) s <- s[!x]
+    # have a header or not
+    use_header <- any(grepl("^#", s))
+    # \t or whitespace
+    if (any(grepl("\t", s)))
+    {
+        fam <- read.table(text=s, header=use_header, sep="\t", comment.char="",
+            stringsAsFactors=FALSE)
+    } else {
+        fam <- read.table(text=s, header=use_header, sep=" ", comment.char="",
+            stringsAsFactors=FALSE)
+    }
+    # check the header
+    s <- names(fam)
+    if (use_header)
+    {
+        s[s=="X.IID"] <- "IID"; s[s=="X.FID"] <- "FID"
+        names(fam) <- s
+    } else {
+        nm <- c("FID", "IID", "PAT", "MAT", "SEX", "PHENO")
+        i <- min(ncol(fam), length(nm))
+        s[1:i] <- nm[1:i]
+        names(fam) <- s
+    }
+    fam
+}
+
 
 #############################################################
 # Read PLINK2 pvar file and return a data.frame
@@ -188,11 +221,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         .cat("        ", psam.fn)
         .cat("        reading ...")
     }
-    fam <- read.table(psam.fn, header=TRUE, comment.char="",
-        stringsAsFactors=FALSE)
-    s <- names(fam)
-    s[s=="X.IID"] <- "IID"; s[s=="X.FID"] <- "FID"
-    names(fam) <- s
+    fam <- read_psam(psam.fn)
     if (anyDuplicated(fam$IID) == 0L)
     {
         sample.id <- fam$IID
@@ -200,7 +229,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         stop("Sample IDs in PLINK2 PGEN are not unique (IID column)!")
     }
     if (nsamp != nrow(fam))
-        stop("Inconsistent number of rows in psam file.")
+    {
+        stop(sprintf(
+            "%d samples are in pgen, but only read %d rows in the psam file.",
+            nsamp, nrow(fam)))
+    }
 
     if (verbose)
     {
