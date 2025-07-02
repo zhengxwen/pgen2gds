@@ -176,6 +176,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     stopifnot(is.numeric(count), length(count)==1L)
     stopifnot(is.character(ignore.chr.prefix))
     stopifnot(is.logical(optimize), length(optimize)==1L)
+    use.bit1 <- FALSE
 
     # check files
     if (!file.exists(pgen.fn)) stop("No file ", sQuote(pgen.fn), ".")
@@ -264,7 +265,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             if (verbose)
             {
                 .cat("    output to path: ", file.path(dirname(out.gdsfn), ""))
-                cat(sprintf("    writing to %d files:\n", pnum))
+                cat(sprintf("    writing to %d files [%s]:\n", pnum, tm()))
                 cat(sprintf("        %s [%s..%s]\n", basename(ptmpfn),
                     SeqArray:::.pretty(psplit[[1L]]),
                     SeqArray:::.pretty(psplit[[1L]] + psplit[[2L]] - 1L)),
@@ -276,6 +277,14 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             ClosePgen(pgen); pgen <- NULL
             ClosePvar(pvar); pvar <- NULL
             gc(FALSE, reset=TRUE, full=TRUE)
+
+            # show information
+            update_info <- function(fn)
+            {
+                .cat("        |> ", basename(fn), " [", tm(), " done]")
+            	NULL
+            }
+            if (!isTRUE(verbose)) update_info <- "none"
 
             # conversion in parallel
             seqParallel(parallel, NULL,
@@ -303,12 +312,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                         close(con)
                         stop(e$message)
                     })
-                    invisible()  # return
-                }, split = "none",
+                }, split = "none", .combine = update_info,
                 pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
                 compress.geno=compress.geno,
                 compress.annotation=compress.annotation,
-                ptmpfn=ptmpfn, psplit=psplit
+                ptmpfn=ptmpfn, psplit=psplit,
             )
             if (verbose)
             {
@@ -399,8 +407,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # add nodes for genotypes
     if (verbose)
         .cat("    genotype [", tm(), "] ...")
-    n_g <- add.gdsn(ngen, "data", storage="bit2", valdim=c(2L, nsamp, 0L),
-        compress=compress.geno)
+    n_g <- add.gdsn(ngen, "data", storage=ifelse(use.bit1, "bit1", "bit2"),
+        valdim=c(2L, nsamp, 0L), compress=compress.geno)
     n_i <- add.gdsn(ngen, "@data", storage="uint8", compress=compress.annotation,
         visible=FALSE)
     n_p <- add.gdsn(npha, "data", storage="bit1", valdim=c(nsamp, 0L),
