@@ -279,9 +279,9 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             gc(FALSE, reset=TRUE, full=TRUE)
 
             # show information
-            update_info <- function(fn)
+            update_info <- function(i)
             {
-                .cat("        |> ", basename(fn), " [", tm(), " done]")
+                .cat("        |> ", i, " [", tm(), " done]")
             	NULL
             }
             if (!isTRUE(verbose)) update_info <- "none"
@@ -301,6 +301,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                             start=psplit[[1L]][i], count=psplit[[2L]][i],
                             optimize=FALSE, digest=FALSE, parallel=FALSE,
                             verbose=FALSE)
+                        i  # return the process index
                     }, error = function(e) {
                         # capture full traceback
                         trace <- capture.output({
