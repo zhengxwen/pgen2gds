@@ -9,7 +9,7 @@
 seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
+    reference=NULL, optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
 }
 
 \arguments{
@@ -28,6 +28,8 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     \item{start}{the starting variant if importing part of the pgen file}
     \item{count}{the maximum count of variant if importing part of the pgen
         file, -1 indicates importing to the end}
+    \item{reference}{genome reference, like "GRCh37", "GRCh38"; it is not
+        specified if \code{reference=NULL}}
     \item{optimize}{if \code{TRUE}, optimize the access efficiency by calling
         \code{\link{cleanup.gds}}}
     \item{digest}{a logical value (TRUE/FALSE) or a character ("md5", "sha1",

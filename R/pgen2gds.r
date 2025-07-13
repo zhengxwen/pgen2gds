@@ -140,7 +140,7 @@ seqReadPVAR <- function(pvar, sel=NULL)
 seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
+    reference=NULL, optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
 {
     # check
     stopifnot(is.character(pgen.fn), length(pgen.fn)==1L)
@@ -172,6 +172,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     stopifnot(is.character(out.gdsfn), length(out.gdsfn)==1L)
     stopifnot(is.character(compress.geno), length(compress.geno)==1L)
     stopifnot(is.character(compress.annotation), length(compress.annotation)==1L)
+    stopifnot(is.null(reference) | is.character(reference))
     stopifnot(is.numeric(start), length(start)==1L)
     stopifnot(is.numeric(count), length(count)==1L)
     stopifnot(is.character(ignore.chr.prefix))
@@ -192,6 +193,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         .cat("        ", pgen.fn)
         .cat("    pvar file (", pretty_size(file.size(pvar.fn)), "):")
         .cat("        ", pvar.fn)
+        .cat("    genome reference: ", if (length(reference))
+            paste(reference, collapse=", ") else "<unset>")
     }
     pgen.fn <- normalizePath(pgen.fn, mustWork=FALSE)
     pvar.fn <- normalizePath(pvar.fn, mustWork=FALSE)
@@ -344,6 +347,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
     n <- addfolder.gdsn(dstfile, "description")
     put.attr.gdsn(n, "source.format", "PLINK2 PGEN Format")
+    if (length(reference))
+        add.gdsn(n, "reference", reference, visible=FALSE)
 
     # add sample.id
     if (verbose) cat("    sample.id  ")

@@ -300,6 +300,7 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 			C_UInt8 num_bits = 1;
 			if (use_bit1)
 			{
+				// using bit1 array
 				GDS_Array_AppendData(varGeno, gt_sz, &gt[0], svUInt8);
 				nbit += gt_sz;
 				for (size_t i=0; i < gt_sz; i++) gt[i] >>= 1;
@@ -323,7 +324,7 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 					}
 				}
 			} else {
-				// using bit2
+				// using bit2 array
 				bool flag = true;
 				while(flag)
 				{
