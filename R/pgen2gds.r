@@ -285,7 +285,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             update_info <- function(i)
             {
                 .cat("        |> ", i, " [", tm(), " done]")
-            	NULL
+                flush.console()
+                NULL
             }
             if (!isTRUE(verbose)) update_info <- "none"
 
