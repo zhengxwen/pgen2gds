@@ -7,7 +7,7 @@
 
 \usage{
 seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
-    compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
+    compress.geno="LZMA_RA", compress.annotation="LZMA_RA", variant.sel=NULL,
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
     reference=NULL, optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
 }
@@ -22,12 +22,14 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     \item{compress.annotation}{the compression method for the GDS variables,
         except "genotype"; optional values are defined in the function
         \code{add.gdsn}}
-    \item{ignore.chr.prefix}{a vector of character, indicating the prefix of
-        chromosome which should be ignored, e.g., \code{"chr"}; it is not
-        case-sensitive}
+    \item{variant.sel}{\code{NULL} for no variant selection, a logical vector
+        or a numeric vector to specify the variant selection}
     \item{start}{the starting variant if importing part of the pgen file}
     \item{count}{the maximum count of variant if importing part of the pgen
         file, -1 indicates importing to the end}
+    \item{ignore.chr.prefix}{a vector of character, indicating the prefix of
+        chromosome which should be ignored, e.g., \code{"chr"}; it is not
+        case-sensitive}
     \item{reference}{genome reference, like "GRCh37", "GRCh38"; it is not
         specified if \code{reference=NULL}}
     \item{optimize}{if \code{TRUE}, optimize the access efficiency by calling

@@ -228,13 +228,16 @@ extern "C"
 /// Import a pgen file
 COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 	SEXP R_read_gt_fc, SEXP R_allele_num_fc, SEXP R_buf, SEXP R_ii, SEXP R_ia,
-	SEXP R_env, SEXP gds_root, SEXP Start, SEXP Count, SEXP progfile,
-	SEXP Verbose)
+	SEXP R_variant_sel, SEXP R_env, SEXP gds_root, SEXP Start, SEXP Count,
+	SEXP progfile, SEXP Verbose)
 {
 	int start = Rf_asInteger(Start);
 	if (start < 1) start = 1;
 	int count = Rf_asInteger(Count);
 	const bool verbose = Rf_asLogical(Verbose)==TRUE;
+	// variant selection
+	const int *p_var_sel =
+		Rf_isNull(R_variant_sel) ? NULL : INTEGER(R_variant_sel);
 
 	COREARRAY_TRY
 
@@ -242,10 +245,12 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 		PdAbstractArray Root = GDS_R_SEXP2Obj(gds_root, FALSE);
 		PdAbstractArray varGeno = GDS_Node_Path(Root, "genotype/data", FALSE);
 		PdAbstractArray varGenoLen = GDS_Node_Path(Root, "genotype/@data", FALSE);
-		const bool use_bit1 = (GDS_Array_GetBitOf(varGeno) == 1);
+		PdAbstractArray varPhase = GDS_Node_Path(Root, "phase/data", FALSE);
 
+		const bool use_bit1 = (GDS_Array_GetBitOf(varGeno) == 1);
 		const size_t num_sample = Rf_length(R_buf);
 		int *ptr_gt_buf = INTEGER(R_buf);
+		vector<C_UInt8> zeros(num_sample);
 		vector<C_Int8> gt(2*num_sample);
 		const size_t gt_sz = gt.size();
 		size_t nbit = 0;
@@ -258,7 +263,7 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 		for (size_t idx=start; count > 0; idx++, count--)
 		{
 			// call GetAlleleCt(pvar, ii)
-			INTEGER(R_ii)[0] = idx;
+			INTEGER(R_ii)[0] = p_var_sel ? p_var_sel[idx-1] : idx;
 			int allele_cnt = Rf_asInteger(Rf_eval(R_allele_num_fc, R_env));
 			if (allele_cnt > 127)
 				throw "PLINK2 does not support > 127 alleles at a site.";
@@ -343,6 +348,8 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 
 			// append the number of bit2 rows
 			GDS_Array_AppendData(varGenoLen, 1, &num_bits, svUInt8);
+			// append phase data
+			GDS_Array_AppendData(varPhase, num_sample, &zeros[0], svUInt8);
 
 			// update progress
 			prog.Forward(1);
@@ -358,7 +365,7 @@ COREARRAY_DLL_EXPORT void R_init_pgen2gds(DllInfo *info)
 	#define CALL(name, num)	   { #name, (DL_FUNC)&name, num }
 	static R_CallMethodDef callMethods[] =
 	{
-		CALL(SEQ_PGEN_Geno_Import, 10),
+		CALL(SEQ_PGEN_Geno_Import, 11),
 		{ NULL, NULL, 0 }
 	};
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
