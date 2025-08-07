@@ -344,10 +344,13 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
             # conversion in parallel
             seqParallel(parallel, pnum,
-                FUN = function(i, pgen.fn, pvar.fn, psam.fn,
+                FUN = function(i, pnum, pgen.fn, pvar.fn, psam.fn,
                     compress.geno, compress.annotation, ptmpfn, psplit,
                     variant.sel)
                 {
+                    # set job status
+                    .Call(SEQ_SetJobStatus, i, pnum)
+                    on.exit(.Call(SEQ_SetJobStatus, 0L, 0L))
                     cnt <- psplit[[2L]][i]
                     tryCatch(
                     {
@@ -371,7 +374,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                         stop(e$message)
                     })
                 }, split = "none", .combine = update_info,
-                pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
+                pnum=pnum, pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
                 compress.geno=compress.geno,
                 compress.annotation=compress.annotation,
                 ptmpfn=ptmpfn, psplit=psplit, variant.sel=variant.sel

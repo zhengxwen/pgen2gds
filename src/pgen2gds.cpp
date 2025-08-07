@@ -63,6 +63,9 @@ static const double S_HOUR =  60 * S_MIN;
 static const double S_DAY  =  24 * S_HOUR;
 static const double S_YEAR = 365 * S_DAY;
 
+static int job_index = 0;
+static int job_count = 0;
+
 static const char *time_str(double s)
 {
 	if (R_FINITE(s))
@@ -202,17 +205,46 @@ void CProgress::ShowProgress()
 		{
 			s = difftime(_last_time, _start_time);
 			if (!progress_conn)
-				Rprintf("\r[%s] 100%%, completed, %s\n", bar, time_str(s));
-			else {
-				put_text(progress_conn, "[%s] 100%%, completed, %s\n", bar, time_str(s));
+			{
+				if (job_count > 0)
+				{
+					Rprintf("\r[%s] 100%% (%d/%d), completed, %s\n", bar,
+						job_index, job_count, time_str(s));
+				} else {
+					Rprintf("\r[%s] 100%%, completed, %s\n", bar, time_str(s));
+				}
+			} else {
+				if (job_count > 0)
+				{
+					put_text(progress_conn, "[%s] 100%% (%d/%d), completed, %s\n",
+						bar, job_index, job_count, time_str(s));
+				} else {
+					put_text(progress_conn, "[%s] 100%%, completed, %s\n", bar,
+						time_str(s));
+				}
 				(*progress_conn->fflush)(progress_conn);
 			}
 		} else if ((interval >= 5) || (fCounter <= 0))
 		{
 			if (!progress_conn)
-				Rprintf("\r[%s] %2.0f%%, ETC: %s        ", bar, p, time_str(s));
-			else {
-				put_text(progress_conn, "[%s] %2.0f%%, ETC: %s\n", bar, p, time_str(s));
+			{
+				if (job_count > 0)
+				{
+					Rprintf("\r[%s] %2.0f%% (%d/%d), ETC: %s        ", bar,
+						p, job_index, job_count, time_str(s));
+				} else {
+					Rprintf("\r[%s] %2.0f%%, ETC: %s        ", bar, p,
+						time_str(s));
+				}
+			} else {
+				if (job_count > 0)
+				{
+					put_text(progress_conn, "[%s] %2.0f%% (%d/%d), ETC: %s\n",
+						bar, p, job_index, job_count, time_str(s));
+				} else {
+					put_text(progress_conn, "[%s] %2.0f%%, ETC: %s\n", bar, p,
+						time_str(s));
+				}
 				(*progress_conn->fflush)(progress_conn);
 			}
 			// fflush(stdout);
@@ -224,6 +256,15 @@ void CProgress::ShowProgress()
 
 extern "C"
 {
+
+/// Import a pgen file
+COREARRAY_DLL_EXPORT SEXP SEQ_SetJobStatus(SEXP index, SEXP count)
+{
+	job_index = Rf_asInteger(index);
+	job_count = Rf_asInteger(count);
+	return R_NilValue;
+}
+
 
 /// Import a pgen file
 COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
@@ -366,6 +407,7 @@ COREARRAY_DLL_EXPORT void R_init_pgen2gds(DllInfo *info)
 	static R_CallMethodDef callMethods[] =
 	{
 		CALL(SEQ_PGEN_Geno_Import, 11),
+		CALL(SEQ_SetJobStatus, 2),
 		{ NULL, NULL, 0 }
 	};
 	R_registerRoutines(info, NULL, callMethods, NULL, NULL);
