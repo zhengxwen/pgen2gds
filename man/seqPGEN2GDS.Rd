@@ -9,7 +9,8 @@
 seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA", variant.sel=NULL,
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    reference=NULL, optimize=TRUE, digest=TRUE, parallel=FALSE, verbose=TRUE)
+    reference=NULL, optimize=TRUE, digest=TRUE, parallel=FALSE, balancing=TRUE,
+    verbose=TRUE)
 }
 
 \arguments{
@@ -42,6 +43,10 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         cluster object for parallel processing; \code{parallel} is passed to
         the argument \code{cl} in \code{\link{seqParallel}}, see
         \code{\link{seqParallel}} for more details}
+    \item{balancing}{whether to perform workload balancing or not, only
+        applicable when multiple cores are used; if \code{NA}, use \code{TRUE}
+        as a default until \code{getOption("seqarray.balancing")} is set and
+        not \code{TRUE}}
     \item{verbose}{if \code{TRUE}, show information}
 }
 

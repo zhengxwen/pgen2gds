@@ -141,7 +141,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     variant.sel=NULL, start=1L, count=NA_integer_,
     ignore.chr.prefix=c("chr", "0"), reference=NULL, optimize=TRUE,
-    digest=TRUE, parallel=FALSE, verbose=TRUE)
+    digest=TRUE, parallel=FALSE, balancing=TRUE, verbose=TRUE)
 {
     # check
     stopifnot(is.character(pgen.fn), length(pgen.fn)==1L)
@@ -180,6 +180,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     stopifnot(is.numeric(count), length(count)==1L)
     stopifnot(is.character(ignore.chr.prefix))
     stopifnot(is.logical(optimize), length(optimize)==1L)
+    stopifnot(is.logical(digest), length(digest)==1L)
+    stopifnot(is.logical(balancing), length(balancing)==1L)
+    if (is.na(balancing))
+        balancing <- isTRUE(getOption("seqarray.balancing", TRUE))
+    stopifnot(is.logical(verbose), length(verbose)==1L)
     use.bit1 <- FALSE
 
     # check files
@@ -292,6 +297,14 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     {
         if (count >= pnum)
         {
+            if (isTRUE(balancing))
+            {
+                m <- SeqArray:::.get_bl_multiple()
+                pnum <- as.integer(pnum * m)
+                if (verbose)
+                    cat("    (workload balancing)\n")
+            }
+
             fn <- sub("^([^.]*).*", "\\1", basename(out.gdsfn))
             psplit <- SeqArray:::.file_split(count, pnum, start)
             # need unique temporary file names
@@ -322,20 +335,19 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             # show information
             update_info <- function(u)
             {
-                .cat("        |> ", u[1L], " (", u[2L], " variants) [", tm(), " done]")
+                .cat("        |> ", u[1L], " (", u[2L], " variants) [",
+                    tm(), " done]")
                 flush.console()
                 NULL
             }
             if (!isTRUE(verbose)) update_info <- "none"
 
             # conversion in parallel
-            seqParallel(parallel, NULL,
-                FUN = function(pgen.fn, pvar.fn, psam.fn,
+            seqParallel(parallel, pnum,
+                FUN = function(i, pgen.fn, pvar.fn, psam.fn,
                     compress.geno, compress.annotation, ptmpfn, psplit,
                     variant.sel)
                 {
-                    # the process id, starting from one
-                    i <- SeqArray:::process_index
                     cnt <- psplit[[2L]][i]
                     tryCatch(
                     {

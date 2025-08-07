@@ -4,7 +4,7 @@ Title: Format Conversion from PLINK2 PGEN to GDS
 Version: 0.99.0
 Date: 2025-06-10
 Depends: R (>= 4.0.0), methods, gdsfmt (>= 1.24.0), pgenlibr
-Imports: SeqArray (>= 1.24.0)
+Imports: SeqArray (>= 1.49.4)
 LinkingTo: gdsfmt
 Suggests: parallel, digest, crayon, RUnit, knitr, BiocGenerics
 Authors@R: c(person("Xiuwen", "Zheng", role=c("aut", "cre"),
