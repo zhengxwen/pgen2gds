@@ -330,6 +330,14 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             # reset memory
             ClosePgen(pgen); pgen <- NULL
             ClosePvar(pvar); pvar <- NULL
+            sel <- NULL
+            if (is.numeric(variant.sel))
+            {
+                sel <- rep(as.raw(0L), nvar_tot)
+                sel[variant.sel] <- as.raw(1L)
+                sel <- memCompress(sel, "gzip")
+                remove(variant.sel)
+            }
             gc(FALSE, reset=TRUE, full=TRUE)
 
             # show information
@@ -345,23 +353,25 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             # conversion in parallel
             seqParallel(parallel, pnum,
                 FUN = function(i, pnum, pgen.fn, pvar.fn, psam.fn,
-                    compress.geno, compress.annotation, ptmpfn, psplit,
-                    variant.sel)
+                    compress.geno, compress.annotation, ptmpfn, psplit, sel)
                 {
                     # set job status
                     .Call(SEQ_SetJobStatus, i, pnum)
                     on.exit(.Call(SEQ_SetJobStatus, 0L, 0L))
                     cnt <- psplit[[2L]][i]
+                    if (!is.null(sel))
+                        sel <- which(as.logical(memDecompress(sel, "gzip")))
                     tryCatch(
                     {
                         pgen2gds::seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn,
                             ptmpfn[i], compress.geno=compress.geno,
                             compress.annotation=compress.annotation,
-                            variant.sel=variant.sel,
+                            variant.sel=sel,
                             start=psplit[[1L]][i], count=cnt,
                             optimize=FALSE, digest=FALSE, parallel=FALSE,
                             verbose=FALSE)
-                        c(i, cnt)  # return the process index & # of variants
+                        # return the process index & # of variants
+                        c(i, cnt)  
                     }, error = function(e) {
                         # capture full traceback
                         trace <- capture.output({
@@ -377,7 +387,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                 pnum=pnum, pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
                 compress.geno=compress.geno,
                 compress.annotation=compress.annotation,
-                ptmpfn=ptmpfn, psplit=psplit, variant.sel=variant.sel
+                ptmpfn=ptmpfn, psplit=psplit, sel=sel
             )
             if (verbose)
             {
@@ -387,6 +397,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
             # reopen the file
             pvar <- pgenlibr::NewPvar(pvar.fn)
+            if (!is.null(sel))
+            {
+                # restore variant.sel
+                variant.sel <- which(as.logical(memDecompress(sel, "gzip")))
+            }
 
         } else {
             pnum <- 1L
