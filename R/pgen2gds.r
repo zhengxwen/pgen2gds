@@ -293,6 +293,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
     # the number of parallel tasks
     pnum <- SeqArray:::.NumParallel(parallel)
+    ptmpfn <- NULL
     if (pnum > 1L)
     {
         if (count >= pnum)
@@ -508,6 +509,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             function(i) GetVariantId(pvar, variant.sel[i]))
     }
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
+    sync.gds(dstfile)
 
     # add nodes for genotypes
     if (verbose)
@@ -556,6 +558,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         SeqArray:::.DigestCode(n_i, digest, FALSE)
         readmode.gdsn(n_p)
         SeqArray:::.DigestCode(n_p, digest, FALSE)
+        sync.gds(dstfile)
 
     } else {
         varnm <- c("genotype/data", "genotype/@data", "phase/data")
@@ -581,9 +584,9 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                 " variants added]"), progfile)
             flush(progfile)
         }
+        sync.gds(dstfile)
 
         # remove temporary files
-        unlink(ptmpfn, force=TRUE)
         writeLines(paste("Done. #", tm()), progfile)
     }
 
@@ -622,12 +625,16 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # add the FORMAT field
     addfolder.gdsn(nann, "format")
 
-    # optimize access efficiency
-    if (verbose)
-        if (optimize) .cat("Done.  # ", tm()) else cat("Done.\n")
+    # close the file
     closefn.gds(dstfile)
     dstfile <- NULL
     progfile_to_rm <- TRUE
+    # delete temporary files
+    if (is.character(ptmpfn)) unlink(ptmpfn, force=TRUE)
+
+    # optimize access efficiency
+    if (verbose)
+        if (optimize) .cat("Done.  # ", tm()) else cat("Done.\n")
     if (optimize)
     {
         if (verbose)
