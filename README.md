@@ -26,8 +26,8 @@ Requires R (≥ v4.0.0), [gdsfmt](http://www.bioconductor.org/packages/gdsfmt), 
 
 * Installation from Github:
 ```R
-library("devtools")
-install_github("CoreArray/pgen2gds")
+library(remotes)
+install_github("zhengxwen/pgen2gds")
 ```
 The `install_github()` approach requires that you build from source, i.e. `make` and compilers must be installed on your system -- see the [R FAQ](http://cran.r-project.org/faqs.html) for your operating system; you may also need to install dependencies manually.
 
