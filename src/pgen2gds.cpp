@@ -288,7 +288,6 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 		PdAbstractArray varGenoLen = GDS_Node_Path(Root, "genotype/@data", FALSE);
 		PdAbstractArray varPhase = GDS_Node_Path(Root, "phase/data", FALSE);
 
-		const bool use_bit1 = (GDS_Array_GetBitOf(varGeno) == 1);
 		const size_t num_sample = Rf_length(R_buf);
 		int *ptr_gt_buf = INTEGER(R_buf);
 		vector<C_UInt8> zeros(num_sample);
@@ -310,8 +309,6 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 				throw "PLINK2 does not support > 127 alleles at a site.";
 			// initialize all zeros
 			memset(&gt[0], 0, gt.size());
-			// set non-zero genotypes
-			bool has_NA = false;
 			for (int allele_i=1; allele_i<allele_cnt; allele_i++)
 			{
 				// call ReadHardcalls(pgen, buf, ii, ia)
@@ -335,55 +332,27 @@ COREARRAY_DLL_EXPORT SEXP SEQ_PGEN_Geno_Import(
 						case 2:
 							gt[2*i+0] = gt[2*i+1] = allele_i; break;
 						default:
-							// NA, missing genotype
+							// NA, missing or invalid genotype
 							gt[2*i+0] = gt[2*i+1] = NA;
-							has_NA = true;
 					}
 				}
 			}
 
 			// append genotypes
 			C_UInt8 num_bits = 1;
-			if (use_bit1)
+			// using bit2 array
+			bool flag = true;
+			while(flag)
 			{
-				// using bit1 array
 				GDS_Array_AppendData(varGeno, gt_sz, &gt[0], svUInt8);
-				nbit += gt_sz;
-				for (size_t i=0; i < gt_sz; i++) gt[i] >>= 1;
-				if (allele_cnt==2 && !has_NA)
+				nbit += gt_sz * 2;
+				allele_cnt -= 4;
+				flag = (allele_cnt>=0) || (count==1 && (nbit & 0x7));
+				// the last one should be padded to a byte
+				if (flag)
 				{
-					while(count==1 && (nbit & 0x7))
-					{
-						GDS_Array_AppendData(varGeno, gt_sz, &gt[0], svUInt8);
-						num_bits ++;
-						for (size_t i=0; i < gt_sz; i++) gt[i] >>= 1;
-						nbit += gt_sz;
-					}
-				} else {
-					while(allele_cnt>1 || (count==1 && (nbit & 0x7)))
-					{
-						GDS_Array_AppendData(varGeno, gt_sz, &gt[0], svUInt8);
-						num_bits ++;
-						for (size_t i=0; i < gt_sz; i++) gt[i] >>= 1;
-						allele_cnt -= 2;
-						nbit += gt_sz;
-					}
-				}
-			} else {
-				// using bit2 array
-				bool flag = true;
-				while(flag)
-				{
-					GDS_Array_AppendData(varGeno, gt_sz, &gt[0], svUInt8);
-					nbit += gt_sz * 2;
-					allele_cnt -= 4;
-					flag = (allele_cnt>=0) || (count==1 && (nbit & 0x7));
-					// the last one should be padded to a byte
-					if (flag)
-					{
-						num_bits ++;
-						for (size_t i=0; i < gt_sz; i++) gt[i] >>= 2;
-					}
+					num_bits ++;
+					for (size_t i=0; i < gt_sz; i++) gt[i] >>= 2;
 				}
 			}
 
