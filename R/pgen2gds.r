@@ -24,9 +24,9 @@
 
 .cat <- function(...) cat(..., "\n", sep="")
 
-tm <- function() strftime(Sys.time(), "%Y-%m-%d %H:%M:%S")
+.tm <- function() strftime(Sys.time(), "%Y-%m-%d %H:%M:%S")
 
-pretty_size <- function(x)
+.pretty_size <- function(x)
 {
     stopifnot(is.numeric(x), length(x)==1L)
     if (is.na(x) || !is.finite(x))
@@ -44,7 +44,7 @@ pretty_size <- function(x)
 }
 
 # append to a gds node using the data return from a user-defined function
-append_fc_gds <- function(nd, start, count, type, fc, fc2=identity)
+.append_fc_gds <- function(nd, start, count, type, fc, fc2=identity)
 {
     last <- start + count
     i <- start
@@ -60,7 +60,7 @@ append_fc_gds <- function(nd, start, count, type, fc, fc2=identity)
 }
 
 # read a psam file
-read_psam <- function(psam.fn)
+.read_psam <- function(psam.fn)
 {
     s <- readLines(psam.fn)
     # remove ## line(s)
@@ -195,11 +195,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # open pgen file
     if (verbose)
     {
-        .cat("##< ", tm())
+        .cat("##< ", .tm())
         .cat("PLINK2 PGEN to SeqArray GDS:")
-        .cat("    pgen file (", pretty_size(file.size(pgen.fn)), "):")
+        .cat("    pgen file (", .pretty_size(file.size(pgen.fn)), "):")
         .cat("        ", pgen.fn)
-        .cat("    pvar file (", pretty_size(file.size(pvar.fn)), "):")
+        .cat("    pvar file (", .pretty_size(file.size(pvar.fn)), "):")
         .cat("        ", pvar.fn)
         .cat("    genome reference: ", if (length(reference))
             paste(reference, collapse=", ") else "<unset>")
@@ -258,11 +258,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     # read psam file
     if (verbose)
     {
-        .cat("    psam file (", pretty_size(file.size(psam.fn)), "):")
+        .cat("    psam file (", .pretty_size(file.size(psam.fn)), "):")
         .cat("        ", psam.fn)
         .cat("        reading ...")
     }
-    fam <- read_psam(psam.fn)
+    fam <- .read_psam(psam.fn)
     if (anyDuplicated(fam$IID) == 0L)
     {
         sample.id <- fam$IID
@@ -320,7 +320,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             if (verbose)
             {
                 .cat("    output to path: ", file.path(dirname(out.gdsfn), ""))
-                cat(sprintf("    writing to %d files [%s]:\n", pnum, tm()))
+                cat(sprintf("    writing to %d files [%s]:\n", pnum, .tm()))
                 cat(sprintf("        %s [%s..%s]\n", basename(ptmpfn),
                     SeqArray:::.pretty(psplit[[1L]]),
                     SeqArray:::.pretty(psplit[[1L]] + psplit[[2L]] - 1L)),
@@ -345,7 +345,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             update_info <- function(u)
             {
                 .cat("        |> ", u[1L], " (", u[2L], " variants) [",
-                    tm(), " done]")
+                    .tm(), " done]")
                 flush.console()
                 NULL
             }
@@ -392,7 +392,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
             )
             if (verbose)
             {
-                cat("    done splitting (", tm(), ")\n", sep="")
+                cat("    done splitting (", .tm(), ")\n", sep="")
                 cat("    --------\n")
             }
 
@@ -445,13 +445,13 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     n <- add.gdsn(dstfile, "chromosome", storage="string",
         compress=compress.annotation)
     fc2 <- if (length(ignore.chr.prefix))
-        function(s) gsub(ignore.chr.prefix, "", s) else identity
+        function(s) gsub(ignore.chr.prefix, "", s, ignore.case=TRUE) else identity
     if (is.null(variant.sel))
     {
-        append_fc_gds(n, start, count, "",
+        .append_fc_gds(n, start, count, "",
             function(i) GetVariantChrom(pvar, i), fc2)
     } else {
-        append_fc_gds(n, start, count, "",
+        .append_fc_gds(n, start, count, "",
             function(i) GetVariantChrom(pvar, variant.sel[i]), fc2)
     }
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
@@ -464,9 +464,9 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         compress=compress.annotation)
     if (is.null(variant.sel))
     {
-        append_fc_gds(n, start, count, 0L, function(i) GetVariantPos(pvar, i))
+        .append_fc_gds(n, start, count, 0L, function(i) GetVariantPos(pvar, i))
     } else {
-        append_fc_gds(n, start, count, 0L,
+        .append_fc_gds(n, start, count, 0L,
             function(i) GetVariantPos(pvar, variant.sel[i]))
     }
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
@@ -477,12 +477,12 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         compress=compress.annotation)
     if (is.null(variant.sel))
     {
-        append_fc_gds(n, start, count, "", function(i) {
+        .append_fc_gds(n, start, count, "", function(i) {
             paste(vapply(seq_len(GetAlleleCt(pvar, i)), function(j)
                 GetAlleleCode(pvar, i, j), ""), collapse=",")
         })
     } else {
-        append_fc_gds(n, start, count, "", function(i) {
+        .append_fc_gds(n, start, count, "", function(i) {
             i <- variant.sel[i]
             paste(vapply(seq_len(GetAlleleCt(pvar, i)), function(j)
                 GetAlleleCode(pvar, i, j), ""), collapse=",")
@@ -503,9 +503,9 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     n <- add.gdsn(nann, "id", storage="string", compress=compress.annotation)
     if (is.null(variant.sel))
     {
-        append_fc_gds(n, start, count, "", function(i) GetVariantId(pvar, i))
+        .append_fc_gds(n, start, count, "", function(i) GetVariantId(pvar, i))
     } else {
-        append_fc_gds(n, start, count, "",
+        .append_fc_gds(n, start, count, "",
             function(i) GetVariantId(pvar, variant.sel[i]))
     }
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
@@ -513,7 +513,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
     # add nodes for genotypes
     if (verbose)
-        .cat("    genotype [", tm(), "] ...")
+        .cat("    genotype [", .tm(), "] ...")
     n_g <- add.gdsn(ngen, "data", storage=ifelse(use.bit1, "bit1", "bit2"),
         valdim=c(2L, nsamp, 0L), compress=compress.geno)
     n_i <- add.gdsn(ngen, "@data", storage="uint8", compress=compress.annotation,
@@ -525,7 +525,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
     progfilename <- paste0(out.gdsfn, ".progress.txt")
     progfile <- file(progfilename, "wt")
     progfile_to_rm <- FALSE
-    writeLines(paste("#", tm()), progfile)
+    writeLines(paste("#", .tm()), progfile)
     writeLines(paste("Input:", basename(pgen.fn)), progfile)
     if (start!=1L || count!=nvar)
         writeLines(paste0("    start: ", start, ", count: ", count), progfile)
@@ -578,8 +578,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
                 append.gdsn(index.gdsn(dstfile, nm), index.gdsn(tmpgds, nm))
             # close the file
             closefn.gds(tmpgds)
-            if (verbose) .cat(" [", tm(), " done]")
-            writeLines(paste0("    [", tm(), ", ",
+            if (verbose) .cat(" [", .tm(), " done]")
+            writeLines(paste0("    [", .tm(), ", ",
                 prettyNum(n, big.mark=",", scientific=FALSE),
                 " variants added]"), progfile)
             flush(progfile)
@@ -587,7 +587,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         sync.gds(dstfile)
 
         # remove temporary files
-        writeLines(paste("Done. #", tm()), progfile)
+        writeLines(paste("Done. #", .tm()), progfile)
     }
 
     # additional nodes for genotype
@@ -634,14 +634,14 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
     # optimize access efficiency
     if (verbose)
-        if (optimize) .cat("Done.  # ", tm()) else cat("Done.\n")
+        if (optimize) .cat("Done.  # ", .tm()) else cat("Done.\n")
     if (optimize)
     {
         if (verbose)
             cat("Optimize the access efficiency ...\n")
         cleanup.gds(out.gdsfn, verbose=verbose)
     }
-    if (verbose) .cat("##> ", tm())
+    if (verbose) .cat("##> ", .tm())
 
     # output
     invisible(normalizePath(out.gdsfn))
