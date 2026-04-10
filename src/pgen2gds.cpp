@@ -375,7 +375,7 @@ COREARRAY_DLL_EXPORT void R_init_pgen2gds(DllInfo *info)
 	#define CALL(name, num)	   { #name, (DL_FUNC)&name, num }
 	static R_CallMethodDef callMethods[] =
 	{
-		CALL(SEQ_PGEN_Geno_Import, 11),
+		CALL(SEQ_PGEN_Geno_Import, 12),
 		CALL(SEQ_SetJobStatus, 2),
 		{ NULL, NULL, 0 }
 	};
