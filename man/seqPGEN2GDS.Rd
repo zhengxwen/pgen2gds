@@ -37,15 +37,15 @@ seqPGEN2GDS(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     \item{reference}{genome reference, like "GRCh37", "GRCh38"; it is not
         specified if \code{reference=NULL}}
     \item{optimize}{if \code{TRUE}, optimize the access efficiency by calling
-        \code{\link{cleanup.gds}}}
+        \code{\link[gdsfmt]{cleanup.gds}}}
     \item{digest}{a logical value (TRUE/FALSE) or a character (e.g., "md5");
         add hash codes to the GDS file if TRUE or a digest algorithm is
         specified}
     \item{parallel}{\code{FALSE} (serial processing), \code{TRUE} (parallel
         processing), a numeric value indicating the number of cores, or a
         cluster object for parallel processing; \code{parallel} is passed to
-        the argument \code{cl} in \code{\link{seqParallel}}, see
-        \code{\link{seqParallel}} for more details}
+        the argument \code{cl} in \code{\link[SeqArray]{seqParallel}}, see
+        \code{\link[SeqArray]{seqParallel}} for more details}
     \item{balancing}{whether to perform workload balancing or not, only
         applicable when multiple cores are used; if \code{NA}, use \code{TRUE}
         as a default until \code{getOption("seqarray.balancing")} is set and

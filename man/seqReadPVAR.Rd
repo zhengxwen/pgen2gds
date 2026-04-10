@@ -10,8 +10,9 @@ seqReadPVAR(pvar, sel=NULL)
 }
 
 \arguments{
-    \item{pvar}{a file name of a pvar file, or a pvar object, which can be
-        queried for variant IDs and allele codes}
+    \item{pvar}{a file name of a pvar file (from \link[pgenlibr]{NewPvar}),
+        or a pvar object, which can be queried for variant IDs and allele
+        codes}
     \item{sel}{\code{NULL}, a logical vector or a numeric vector for
         specifying the variants; \code{NULL} for including all variants}
 }
