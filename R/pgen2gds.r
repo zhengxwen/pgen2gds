@@ -131,7 +131,7 @@ seqReadPVAR <- function(pvar, sel=NULL)
 #############################################################
 # Format conversion from PGEN to GDS
 #
-seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
+seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
     variant.sel=NULL, start=1L, count=NA_integer_,
     ignore.chr.prefix=c("chr", "0"), reference=NULL, optimize=TRUE,
@@ -139,7 +139,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 {
     # check
     stopifnot(is.character(pgen.fn), length(pgen.fn)==1L)
-    if (missing(pvar.fn) && missing(psam.fn))
+    if (is.null(pvar.fn) && is.null(psam.fn))
     {
         fn <- gsub("\\.pgen$", "", pgen.fn, ignore.case=TRUE)
         # set pvar file

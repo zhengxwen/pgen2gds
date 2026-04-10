@@ -6,7 +6,7 @@
 }
 
 \usage{
-seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
+seqPGEN2GDS(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA", variant.sel=NULL,
     start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
     reference=NULL, optimize=TRUE, digest=TRUE, parallel=FALSE, balancing=TRUE,
@@ -15,8 +15,10 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 
 \arguments{
     \item{pgen.fn}{a file name for the pgen file}
-    \item{pvar.fn}{a file name for the pvar file, or missing}
-    \item{psam.fn}{a file name for the psam file, or missing}
+    \item{pvar.fn}{a file name for the pvar file, or \code{NULL} to use
+        the default}
+    \item{psam.fn}{a file name for the psam file, or \code{NULL} to use
+        the default}
     \item{out.gdsfn}{the file name of output GDS file}
     \item{compress.geno}{the compression method for "genotype"; optional
         values are defined in the function \code{add.gdsn}}
