@@ -27,7 +27,8 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         or a numeric vector to specify the variant selection}
     \item{start}{the starting variant if importing part of the pgen file}
     \item{count}{the maximum count of variant if importing part of the pgen
-        file, -1 indicates importing to the end}
+        file, \code{NA_integer_} or any non-positive value indicates importing
+        to the end}
     \item{ignore.chr.prefix}{a vector of character, indicating the prefix of
         chromosome which should be ignored, e.g., \code{"chr"}; it is not
         case-sensitive}
