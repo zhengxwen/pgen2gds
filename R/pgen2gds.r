@@ -98,22 +98,16 @@
 #
 seqReadPVAR <- function(pvar, sel=NULL)
 {
-    # check
-    error <- TRUE
     if (is.character(pvar))
     {
         pvar <- NewPvar(pvar)
         on.exit(ClosePvar(pvar))
-        error <- FALSE
-    }
-    if (error && is.list(pvar))
+    } else if (inherits(pvar, "pvar") && is(pvar$pvar, "externalptr"))
     {
-        stopifnot(is.character(pvar$class), pvar$class=="pvar")
-        stopifnot(is(pvar$pvar, "externalptr"))
-        error <- FALSE
-    }
-    if (error)
+        # valid pvar object, use as-is
+    } else {
         stop("'pvar' should be a file name or an object returned from pgenlibr::NewPvar().")
+    }
     # selection
     if (is.null(sel))
         sel <- seq_len(GetVariantCt(pvar))
