@@ -4,7 +4,7 @@ useDynLib(pgen2gds,
 )
 
 # Export the following names
-exportPattern("^seq*")
+exportPattern("^seq")
 
 # Import
 import(methods)

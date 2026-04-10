@@ -13,6 +13,6 @@ Description: Provides functions for the format conversion from PLINK2 pgen
     files to SeqArray GDS files.
 License: GPL-3
 VignetteBuilder: knitr
-BugReports: http://github.com/zhengxwen/gds2pgen/issues
-URL: http://github.com/zhengxwen/gds2pgen
+BugReports: https://github.com/zhengxwen/pgen2gds/issues
+URL: https://github.com/zhengxwen/pgen2gds
 biocViews: Infrastructure, DataImport
