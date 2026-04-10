@@ -35,9 +35,9 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
         specified if \code{reference=NULL}}
     \item{optimize}{if \code{TRUE}, optimize the access efficiency by calling
         \code{\link{cleanup.gds}}}
-    \item{digest}{a logical value (TRUE/FALSE) or a character ("md5", "sha1",
-        "sha256", "sha384" or "sha512"); add md5 hash codes to the GDS file
-        if TRUE or a digest algorithm is specified}
+    \item{digest}{a logical value (TRUE/FALSE) or a character (e.g., "md5");
+        add hash codes to the GDS file if TRUE or a digest algorithm is
+        specified}
     \item{parallel}{\code{FALSE} (serial processing), \code{TRUE} (parallel
         processing), a numeric value indicating the number of cores, or a
         cluster object for parallel processing; \code{parallel} is passed to
@@ -55,8 +55,7 @@ seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn, out.gdsfn,
 }
 
 \references{
-    \url{https://bitbucket.org/gavinband/bgen},
-    \url{http://bgenformat.org}
+    \url{https://www.cog-genomics.org/plink/2.0/}
 }
 \author{Xiuwen Zheng}
 \seealso{
