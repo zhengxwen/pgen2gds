@@ -18,7 +18,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 # Introduction
 
-[PLINK 2](https://www.cog-genomics.org/plink/2.0/) is one of the most widely
+[PLINK](https://www.cog-genomics.org/plink/2.0/) is one of the most widely
 used toolsets in statistical genetics, providing fast and memory-efficient
 methods for quality control, association testing, and population-stratification
 analysis of large-scale genotype data. Its binary file format — comprising
@@ -35,10 +35,10 @@ efficient random access, built-in compression, and tight integration with
 Bioconductor workflows for downstream analyses such as GWAS, PCA, and
 relatedness estimation.
 
-The **pgen2gds** package bridges these two ecosystems by converting PLINK 2
+The **pgen2gds** package bridges these two ecosystems by converting PLINK2
 PGEN files into SeqArray GDS files, enabling users to leverage the rich
 Bioconductor infrastructure for analysis while starting from data produced by
-PLINK 2.
+PLINK2.
 
 # Installation
 
@@ -56,13 +56,13 @@ BiocManager::install("pgen2gds")
 # Quick Start
 
 ```{r library}
-library(pgen2gds)
 library(SeqArray)
+library(pgen2gds)
 ```
 
 ## Locate example files
 
-The package ships with small example PLINK 2 files:
+The package ships with small example PLINK2 files:
 
 ```{r example-files}
 pgen_fn <- system.file("extdata", "plink2_gen.pgen", package = "pgen2gds")
@@ -92,7 +92,7 @@ head(seqReadPVAR(pvar_fn, sel = 1:5))
 
 ## Convert PGEN to GDS
 
-The main function, `seqPGEN2GDS()`, converts a set of PLINK 2 files into a
+The main function, `seqPGEN2GDS()`, converts a set of PLINK2 files into a
 SeqArray GDS file. When only the `.pgen` path is provided, the `.pvar` and
 `.psam` paths are derived automatically:
 
