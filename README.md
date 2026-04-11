@@ -24,6 +24,13 @@ Dr. Xiuwen Zheng
 
 Requires R (≥ v4.0.0), [gdsfmt](http://www.bioconductor.org/packages/gdsfmt), [SeqArray](http://www.bioconductor.org/packages/SeqArray)
 
+* Installation from Biocondutor:
+```R
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("pgen2gds")
+```
+
 * Installation from Github:
 ```R
 library(remotes)
