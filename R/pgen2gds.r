@@ -292,8 +292,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
             if (anyDuplicated(sample.sel))
                 stop("'sample.sel' should not have any duplicate.")
             sample.sel <- sort(sample.sel)
-            if (sample.sel[1L]<1L || sample.sel[length(sample.sel)]>nsamp_tot)
-                stop("'sample.sel' should be between 1 and ", nsamp_tot, ".")
+            if (length(sample.sel) > 0L)
+            {
+                if (sample.sel[1L]<1L || sample.sel[length(sample.sel)]>nsamp_tot)
+                    stop("'sample.sel' should be between 1 and ", nsamp_tot, ".")
+            }
         } else {
             stop("'sample.sel' should be NULL or a logical/numeric vector.")
         }
