@@ -1,0 +1,197 @@
+---
+title: "Format Conversion from PLINK2 PGEN to SeqArray GDS"
+author: "Xiuwen Zheng"
+date: "Apr 2026"
+output:
+    BiocStyle::html_document:
+        toc: true
+        toc_depth: 3
+vignette: >
+    %\VignetteIndexEntry{Format Conversion from PLINK2 PGEN to SeqArray GDS}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+# Introduction
+
+[PLINK 2](https://www.cog-genomics.org/plink/2.0/) is one of the most widely
+used toolsets in statistical genetics, providing fast and memory-efficient
+methods for quality control, association testing, and population-stratification
+analysis of large-scale genotype data. Its binary file format — comprising
+`.pgen` (genotypes), `.pvar` (variant metadata), and `.psam` (sample metadata)
+files — offers compact storage and rapid access for datasets with millions of
+variants and hundreds of thousands of samples.
+
+[Genomic Data Structure (GDS)](https://bioconductor.org/packages/gdsfmt) is a
+hierarchical, array-oriented container format built on the CoreArray C++ library.
+The [SeqArray](https://bioconductor.org/packages/SeqArray) package extends GDS
+to store sequence and genotyping data following a schema that mirrors VCF
+fields (genotype, annotation/info, annotation/format, etc.), while providing
+efficient random access, built-in compression, and tight integration with
+Bioconductor workflows for downstream analyses such as GWAS, PCA, and
+relatedness estimation.
+
+The **pgen2gds** package bridges these two ecosystems by converting PLINK 2
+PGEN files into SeqArray GDS files, enabling users to leverage the rich
+Bioconductor infrastructure for analysis while starting from data produced by
+PLINK 2.
+
+# Installation
+
+**pgen2gds** requires
+[gdsfmt](https://bioconductor.org/packages/gdsfmt),
+[SeqArray](https://bioconductor.org/packages/SeqArray), and
+[pgenlibr](https://cran.r-project.org/package=pgenlibr).
+
+```r
+if (!requireNamespace("BiocManager", quietly=TRUE))
+    install.packages("BiocManager")
+BiocManager::install("pgen2gds")
+```
+
+# Quick Start
+
+```{r library}
+library(pgen2gds)
+library(SeqArray)
+```
+
+## Locate example files
+
+The package ships with small example PLINK 2 files:
+
+```{r example-files}
+pgen_fn <- system.file("extdata", "plink2_gen.pgen", package = "pgen2gds")
+pvar_fn <- system.file("extdata", "plink2_gen.pvar", package = "pgen2gds")
+psam_fn <- system.file("extdata", "plink2_gen.psam", package = "pgen2gds")
+
+pgen_fn
+```
+
+## Read variant information
+
+`seqReadPVAR()` reads a `.pvar` file and returns a data frame of variant
+metadata:
+
+```{r read-pvar}
+pvar <- seqReadPVAR(pvar_fn)
+head(pvar)
+dim(pvar)
+```
+
+You can also subset variants using a logical or numeric index:
+
+```{r read-pvar-subset}
+# Select the first 5 variants
+head(seqReadPVAR(pvar_fn, sel = 1:5))
+```
+
+## Convert PGEN to GDS
+
+The main function, `seqPGEN2GDS()`, converts a set of PLINK 2 files into a
+SeqArray GDS file. When only the `.pgen` path is provided, the `.pvar` and
+`.psam` paths are derived automatically:
+
+```{r convert}
+gds_fn <- tempfile(fileext = ".gds")
+
+seqPGEN2GDS(pgen_fn, out.gdsfn = gds_fn)
+```
+
+## Explore the GDS file
+
+Open the resulting file with SeqArray and inspect its contents:
+
+```{r open-gds}
+gds <- seqOpen(gds_fn)
+gds
+```
+
+```{r basic-info}
+# Sample and variant counts
+cat("Samples: ", length(seqGetData(gds, "sample.id")), "\n")
+cat("Variants:", length(seqGetData(gds, "variant.id")), "\n")
+```
+
+```{r chrom-table}
+# Chromosome distribution
+table(seqGetData(gds, "chromosome"))
+```
+
+## Access genotype data
+
+```{r genotype}
+# Read genotypes for the first 5 variants
+seqSetFilter(gds, variant.sel = 1:5)
+geno <- seqGetData(gds, "genotype")
+dim(geno)  # ploidy x samples x variants
+geno[, 1:6, ]
+```
+
+```{r close-gds}
+# close the file 
+seqClose(gds)
+```
+
+# Advanced Usage
+
+## Selecting a subset of variants
+
+Use `variant.sel` to convert only specific variants:
+
+```{r variant-sel}
+gds_sub <- tempfile(fileext = ".gds")
+
+# Convert only variants 10 through 20
+seqPGEN2GDS(pgen_fn, out.gdsfn=gds_sub, variant.sel=10:20, verbose=FALSE)
+
+f <- seqOpen(gds_sub)
+cat("Variants:", length(seqGetData(f, "variant.id")), "\n")
+seqClose(f)
+
+unlink(gds_sub, force = TRUE)
+```
+
+## Importing a range with start/count
+
+For very large files you can import a contiguous range of variants:
+
+```{r start-count}
+gds_range <- tempfile(fileext = ".gds")
+
+seqPGEN2GDS(pgen_fn, out.gdsfn = gds_range, start=100, count=50, verbose=FALSE)
+
+f <- seqOpen(gds_range)
+vid <- seqGetData(f, "variant.id")
+cat("Variant IDs:", head(vid), "...", tail(vid), "\n")
+cat("Total:", length(vid), "variants\n")
+seqClose(f)
+
+unlink(gds_range, force = TRUE)
+```
+
+## Parallel conversion
+
+For large datasets, parallel processing can speed up the conversion:
+
+```R
+# Use 2 cores
+seqPGEN2GDS(pgen_fn, out.gdsfn = "output.gds", parallel=2)
+```
+
+# Cleanup
+
+```{r cleanup}
+# Remove the generated GDS file
+unlink(gds_fn, force = TRUE)
+```
+
+# Session Info
+
+```{r session-info}
+sessionInfo()
+```
