@@ -12,7 +12,7 @@ This package provides functions for format conversion from [PLINK2 pgen](https:/
 
 ## Version
 
-v0.99.0
+v0.99.1
 
 
 ## Package Maintainer
