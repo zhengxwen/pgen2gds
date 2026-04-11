@@ -26,6 +26,8 @@
 
 .tm <- function() strftime(Sys.time(), "%Y-%m-%d %H:%M:%S")
 
+.pretty <- function(x) prettyNum(x, big.mark=",", scientific=FALSE)
+
 .pretty_size <- function(x)
 {
     stopifnot(is.numeric(x), length(x)==1L)
@@ -316,8 +318,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
                 .cat("    output to path: ", file.path(dirname(out.gdsfn), ""))
                 cat(sprintf("    writing to %d files [%s]:\n", pnum, .tm()))
                 cat(sprintf("        %s [%s..%s]\n", basename(ptmpfn),
-                    SeqArray:::.pretty(psplit[[1L]]),
-                    SeqArray:::.pretty(psplit[[1L]] + psplit[[2L]] - 1L)),
+                    .pretty(psplit[[1L]]),
+                    .pretty(psplit[[1L]] + psplit[[2L]] - 1L)),
                     sep="")
                 flush.console()
             }
@@ -431,15 +433,21 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
 
     # add chromosome
     if (verbose) cat("    chromosome  ")
-    if (length(ignore.chr.prefix))
+    strip_chr <- length(ignore.chr.prefix) > 0L
+    if (strip_chr)
     {
+        escaped <- gsub("([.\\|^$*+?(){}\\[\\]])", "\\\\\\1",
+            ignore.chr.prefix)
         ignore.chr.prefix <- paste0("^(",
-            paste(ignore.chr.prefix, collapse="|"), ")")
+            paste(escaped, collapse="|"), ")")
     }
     n <- add.gdsn(dstfile, "chromosome", storage="string",
         compress=compress.annotation)
-    fc2 <- if (length(ignore.chr.prefix))
-        function(s) gsub(ignore.chr.prefix, "", s, ignore.case=TRUE) else identity
+    fc2 <- if (strip_chr)
+        function(s) {
+            r <- sub(ignore.chr.prefix, "", s, ignore.case=TRUE)
+            ifelse(nchar(r) == 0L, s, r)
+        } else identity
     if (is.null(variant.sel))
     {
         .append_fc_gds(n, start, count, "",
