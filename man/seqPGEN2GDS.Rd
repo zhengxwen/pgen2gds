@@ -8,9 +8,9 @@
 \usage{
 seqPGEN2GDS(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA", variant.sel=NULL,
-    start=1L, count=NA_integer_, ignore.chr.prefix=c("chr", "0"),
-    reference=NULL, optimize=TRUE, digest=TRUE, parallel=FALSE, balancing=TRUE,
-    verbose=TRUE)
+    sample.sel=NULL, start=1L, count=NA_integer_,
+    ignore.chr.prefix=c("chr", "0"), reference=NULL, optimize=TRUE,
+    digest=TRUE, parallel=FALSE, balancing=TRUE, verbose=TRUE)
 }
 
 \arguments{
@@ -27,6 +27,8 @@ seqPGEN2GDS(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
         \code{add.gdsn}}
     \item{variant.sel}{\code{NULL} for no variant selection, a logical vector
         or a numeric vector to specify the variant selection}
+    \item{sample.sel}{\code{NULL} for no sample selection, a logical vector
+        or a numeric vector to specify the sample selection}
     \item{start}{the starting variant if importing part of the pgen file}
     \item{count}{the maximum count of variant if importing part of the pgen
         file, \code{NA_integer_} or any non-positive value indicates importing

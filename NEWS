@@ -1,6 +1,8 @@
 CHANGES IN VERSION 0.99.1 (2026-04)
 -------------------------
 
+    o new option 'sample.sel' in `seqPGEN2GDS()`
+
     o pgen2gds was submitted to Bioconductor
 
 

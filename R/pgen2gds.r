@@ -135,7 +135,7 @@ seqReadPVAR <- function(pvar, sel=NULL)
 #
 seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
-    variant.sel=NULL, start=1L, count=NA_integer_,
+    variant.sel=NULL, sample.sel=NULL, start=1L, count=NA_integer_,
     ignore.chr.prefix=c("chr", "0"), reference=NULL, optimize=TRUE,
     digest=TRUE, parallel=FALSE, balancing=TRUE, verbose=TRUE)
 {
@@ -172,6 +172,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     stopifnot(is.null(reference) | is.character(reference))
     stopifnot(is.null(variant.sel) | is.logical(variant.sel) |
         is.numeric(variant.sel))
+    stopifnot(is.null(sample.sel) | is.logical(sample.sel) |
+        is.numeric(sample.sel))
     stopifnot(is.numeric(start), length(start)==1L)
     stopifnot(is.numeric(count), length(count)==1L)
     stopifnot(is.character(ignore.chr.prefix))
@@ -272,9 +274,48 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
             nsamp, nrow(fam)))
     }
 
+    # sample selection
+    nsamp_tot <- nsamp
+    if (!is.null(sample.sel))
+    {
+        if (is.logical(sample.sel))
+        {
+            if (length(sample.sel) != nsamp_tot)
+                stop("'length(sample.sel)' should be ", nsamp_tot, ".")
+            sample.sel <- which(sample.sel)
+        } else if (is.numeric(sample.sel))
+        {
+            if (!is.integer(sample.sel))
+                sample.sel <- as.integer(sample.sel)
+            if (anyNA(sample.sel))
+                stop("'sample.sel' should not have NA.")
+            if (anyDuplicated(sample.sel))
+                stop("'sample.sel' should not have any duplicate.")
+            sample.sel <- sort(sample.sel)
+            if (sample.sel[1L]<1L || sample.sel[length(sample.sel)]>nsamp_tot)
+                stop("'sample.sel' should be between 1 and ", nsamp_tot, ".")
+        } else {
+            stop("'sample.sel' should be NULL or a logical/numeric vector.")
+        }
+        if (length(sample.sel) <= 0L)
+            stop("There is no selected sample in 'sample.sel'.")
+        sample.id <- sample.id[sample.sel]
+        nsamp <- length(sample.sel)
+        # reopen pgen with sample subset
+        ClosePgen(pgen)
+        pgen <- pgenlibr::NewPgen(pgen.fn, pvar=pvar,
+            sample_subset=sample.sel)
+    }
+
     if (verbose)
     {
-        .cat("    # of samples: ", nsamp)
+        if (nsamp == nsamp_tot)
+        {
+            .cat("    # of samples: ", nsamp)
+        } else {
+            .cat("    # of selected samples: ", nsamp, " (from ",
+                nsamp_tot, " samples)")
+        }
         if (nvar == nvar_tot)
         {
             .cat("    # of variants: ", nvar)
@@ -350,7 +391,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
             # conversion in parallel
             seqParallel(parallel, pnum,
                 FUN = function(i, pnum, pgen.fn, pvar.fn, psam.fn,
-                    compress.geno, compress.annotation, ptmpfn, psplit, sel)
+                    compress.geno, compress.annotation, ptmpfn, psplit, sel,
+                    sample.sel)
                 {
                     # set job status
                     .Call(SEQ_SetJobStatus, i, pnum)
@@ -363,7 +405,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
                         pgen2gds::seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn,
                             ptmpfn[i], compress.geno=compress.geno,
                             compress.annotation=compress.annotation,
-                            variant.sel=sel,
+                            variant.sel=sel, sample.sel=sample.sel,
                             start=psplit[[1L]][i], count=cnt,
                             optimize=FALSE, digest=FALSE, parallel=FALSE,
                             verbose=FALSE)
@@ -384,7 +426,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
                 pnum=pnum, pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
                 compress.geno=compress.geno,
                 compress.annotation=compress.annotation,
-                ptmpfn=ptmpfn, psplit=psplit, sel=sel
+                ptmpfn=ptmpfn, psplit=psplit, sel=sel,
+                sample.sel=sample.sel
             )
             if (verbose)
             {
