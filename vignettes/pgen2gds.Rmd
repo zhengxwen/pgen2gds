@@ -27,12 +27,12 @@ files — offers compact storage and rapid access for datasets with millions of
 variants and hundreds of thousands of samples.
 
 [Genomic Data Structure (GDS)](https://bioconductor.org/packages/gdsfmt) is a
-hierarchical, array-oriented container format built on the CoreArray C++ library.
-The [SeqArray](https://bioconductor.org/packages/SeqArray) package extends GDS
-to store sequence and genotyping data following a schema that mirrors VCF
-fields (genotype, annotation/info, annotation/format, etc.), while providing
-efficient random access, built-in compression, and tight integration with
-Bioconductor workflows for downstream analyses such as GWAS, PCA, and
+hierarchical, array-oriented container format built on the CoreArray C++
+library. The [SeqArray](https://bioconductor.org/packages/SeqArray) package
+extends GDS to store sequence and genotyping data following a schema that
+mirrors VCF fields (genotype, annotation/info, annotation/format, etc.), while
+providing efficient random access, built-in compression, and tight integration
+with Bioconductor workflows for downstream analyses such as GWAS, PCA, and
 relatedness estimation.
 
 The **pgen2gds** package bridges these two ecosystems by converting PLINK2

@@ -7,7 +7,7 @@
 
 \usage{
 seqPGEN2GDS(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
-    compress.geno="LZMA_RA", compress.annotation="LZMA_RA", variant.sel=NULL,
+    compress.geno="LZMA_RA", compress.annot="LZMA_RA", variant.sel=NULL,
     sample.sel=NULL, start=1L, count=NA_integer_,
     ignore.chr.prefix=c("chr", "0"), reference=NULL, optimize=TRUE,
     digest=TRUE, parallel=FALSE, balancing=TRUE, verbose=TRUE)
@@ -22,7 +22,7 @@ seqPGEN2GDS(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     \item{out.gdsfn}{the file name of output GDS file}
     \item{compress.geno}{the compression method for "genotype"; optional
         values are defined in the function \code{add.gdsn}}
-    \item{compress.annotation}{the compression method for the GDS variables,
+    \item{compress.annot}{the compression method for the GDS variables,
         except "genotype"; optional values are defined in the function
         \code{add.gdsn}}
     \item{variant.sel}{\code{NULL} for no variant selection, a logical vector

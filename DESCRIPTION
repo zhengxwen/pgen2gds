@@ -3,7 +3,7 @@ Type: Package
 Title: Format Conversion from PLINK2 PGEN to GDS
 Version: 0.99.1
 Date: 2026-04-11
-Depends: R (>= 4.0.0), methods, gdsfmt (>= 1.24.0)
+Depends: methods, gdsfmt (>= 1.24.0)
 Imports: SeqArray (>= 1.49.6), pgenlibr
 LinkingTo: gdsfmt
 Suggests: parallel, digest, crayon, testthat (>= 3.0.0), knitr, rmarkdown,
@@ -16,4 +16,4 @@ License: GPL-3
 VignetteBuilder: knitr
 BugReports: https://github.com/zhengxwen/pgen2gds/issues
 URL: https://github.com/zhengxwen/pgen2gds
-biocViews: Infrastructure, DataImport
+biocViews: Infrastructure, DataImport, Genetics

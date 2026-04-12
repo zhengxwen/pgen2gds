@@ -87,8 +87,8 @@
         names(fam) <- s
     } else {
         nm <- c("FID", "IID", "PAT", "MAT", "SEX", "PHENO")
-        i <- min(ncol(fam), length(nm))
-        s[1:i] <- nm[1:i]
+        i <- seq_len(min(ncol(fam), length(nm)))
+        s[i] <- nm[i]
         names(fam) <- s
     }
     fam
@@ -108,7 +108,8 @@ seqReadPVAR <- function(pvar, sel=NULL)
     {
         # valid pvar object, use as-is
     } else {
-        stop("'pvar' should be a file name or an object returned from pgenlibr::NewPvar().")
+        stop("'pvar' should be a file name or an object ",
+            "returned from pgenlibr::NewPvar().")
     }
     # selection
     if (is.null(sel))
@@ -134,7 +135,7 @@ seqReadPVAR <- function(pvar, sel=NULL)
 # Format conversion from PGEN to GDS
 #
 seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
-    compress.geno="LZMA_RA", compress.annotation="LZMA_RA",
+    compress.geno="LZMA_RA", compress.annot="LZMA_RA",
     variant.sel=NULL, sample.sel=NULL, start=1L, count=NA_integer_,
     ignore.chr.prefix=c("chr", "0"), reference=NULL, optimize=TRUE,
     digest=TRUE, parallel=FALSE, balancing=TRUE, verbose=TRUE)
@@ -168,7 +169,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     stopifnot(is.character(psam.fn), length(psam.fn)==1L)
     stopifnot(is.character(out.gdsfn), length(out.gdsfn)==1L)
     stopifnot(is.character(compress.geno), length(compress.geno)==1L)
-    stopifnot(is.character(compress.annotation), length(compress.annotation)==1L)
+    stopifnot(is.character(compress.annot), length(compress.annot)==1L)
     stopifnot(is.null(reference) | is.character(reference))
     stopifnot(is.null(variant.sel) | is.logical(variant.sel) |
         is.numeric(variant.sel))
@@ -208,8 +209,8 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     pvar <- pgenlibr::NewPvar(pvar.fn)
     pgen <- pgenlibr::NewPgen(pgen.fn, pvar=pvar)
     on.exit({
-    	if (!is.null(pgen)) ClosePgen(pgen)
-    	if (!is.null(pvar)) ClosePvar(pvar)
+        if (!is.null(pgen)) ClosePgen(pgen)
+        if (!is.null(pvar)) ClosePvar(pvar)
     })
     nvar <- nvar_tot <- GetVariantCt(pgen)
     nsamp <- GetRawSampleCt(pgen)
@@ -245,12 +246,12 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
 
     if (is.na(start) || start<1L) start <- 1L
     if (!is.integer(start)) start <- as.integer(start)
-	count <- as.integer(count)
+    count <- as.integer(count)
     if (is.na(count) || count<1L)
     {
-    	count <- as.integer(nvar - start + 1L)
+        count <- as.integer(nvar - start + 1L)
     } else {
-    	count <- min(start + count, nvar + 1L) - start
+        count <- min(start + count, nvar + 1L) - start
     }
 
     # read psam file
@@ -294,8 +295,12 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
             sample.sel <- sort(sample.sel)
             if (length(sample.sel) > 0L)
             {
-                if (sample.sel[1L]<1L || sample.sel[length(sample.sel)]>nsamp_tot)
-                    stop("'sample.sel' should be between 1 and ", nsamp_tot, ".")
+                if (sample.sel[1L] < 1L ||
+                    sample.sel[length(sample.sel)] > nsamp_tot)
+                {
+                    stop("'sample.sel' should be between 1 and ",
+                        nsamp_tot, ".")
+                }
             }
         } else {
             stop("'sample.sel' should be NULL or a logical/numeric vector.")
@@ -394,7 +399,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
             # conversion in parallel
             seqParallel(parallel, pnum,
                 FUN = function(i, pnum, pgen.fn, pvar.fn, psam.fn,
-                    compress.geno, compress.annotation, ptmpfn, psplit, sel,
+                    compress.geno, compress.annot, ptmpfn, psplit, sel,
                     sample.sel)
                 {
                     # set job status
@@ -407,7 +412,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
                     {
                         pgen2gds::seqPGEN2GDS(pgen.fn, pvar.fn, psam.fn,
                             ptmpfn[i], compress.geno=compress.geno,
-                            compress.annotation=compress.annotation,
+                            compress.annot=compress.annot,
                             variant.sel=sel, sample.sel=sample.sel,
                             start=psplit[[1L]][i], count=cnt,
                             optimize=FALSE, digest=FALSE, parallel=FALSE,
@@ -428,7 +433,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
                 }, split = "none", .combine = update_info,
                 pnum=pnum, pgen.fn=pgen.fn, pvar.fn=pvar.fn, psam.fn=psam.fn,
                 compress.geno=compress.geno,
-                compress.annotation=compress.annotation,
+                compress.annot=compress.annot,
                 ptmpfn=ptmpfn, psplit=psplit, sel=sel,
                 sample.sel=sample.sel
             )
@@ -467,14 +472,14 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
 
     # add sample.id
     if (verbose) cat("    sample.id  ")
-    n <- add.gdsn(dstfile, "sample.id", sample.id, compress=compress.annotation,
+    n <- add.gdsn(dstfile, "sample.id", sample.id, compress=compress.annot,
         closezip=TRUE)
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
 
     # add variant.id
     if (verbose) cat("    variant.id  ")
     n <- add.gdsn(dstfile, "variant.id", seq.int(start, length.out=count),
-        compress=compress.annotation, closezip=TRUE)
+        compress=compress.annot, closezip=TRUE)
     SeqArray:::.DigestCode(n, digest, verbose, FALSE)
 
     # add chromosome
@@ -488,7 +493,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
             paste(escaped, collapse="|"), ")")
     }
     n <- add.gdsn(dstfile, "chromosome", storage="string",
-        compress=compress.annotation)
+        compress=compress.annot)
     fc2 <- if (strip_chr)
         function(s) {
             r <- sub(ignore.chr.prefix, "", s, ignore.case=TRUE)
@@ -509,7 +514,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     # add position
     if (verbose) cat("    position  ")
     n <- add.gdsn(dstfile, "position", storage="int32",
-        compress=compress.annotation)
+        compress=compress.annot)
     if (is.null(variant.sel))
     {
         .append_fc_gds(n, start, count, 0L, function(i) GetVariantPos(pvar, i))
@@ -522,7 +527,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     # add allele
     if (verbose) cat("    allele  ")
     n <- add.gdsn(dstfile, "allele", storage="string",
-        compress=compress.annotation)
+        compress=compress.annot)
     if (is.null(variant.sel))
     {
         .append_fc_gds(n, start, count, "", function(i) {
@@ -548,7 +553,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
     nann <- addfolder.gdsn(dstfile, "annotation")
     # add annotation/id (rsid)
     if (verbose) cat("    annotation/id  ")
-    n <- add.gdsn(nann, "id", storage="string", compress=compress.annotation)
+    n <- add.gdsn(nann, "id", storage="string", compress=compress.annot)
     if (is.null(variant.sel))
     {
         .append_fc_gds(n, start, count, "", function(i) GetVariantId(pvar, i))
@@ -564,7 +569,7 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
         .cat("    genotype [", .tm(), "] ...")
     n_g <- add.gdsn(ngen, "data", storage=ifelse(use.bit1, "bit1", "bit2"),
         valdim=c(2L, nsamp, 0L), compress=compress.geno)
-    n_i <- add.gdsn(ngen, "@data", storage="uint8", compress=compress.annotation,
+    n_i <- add.gdsn(ngen, "@data", storage="uint8", compress=compress.annot,
         visible=FALSE)
     n_p <- add.gdsn(npha, "data", storage="bit1", valdim=c(nsamp, 0L),
         compress=compress.geno)
@@ -643,23 +648,25 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
         compress=compress.geno, closezip=TRUE)
     put.attr.gdsn(n, "R.colnames",
         c("sample.index", "variant.index", "length"))
-    add.gdsn(ngen, "extra", storage="int16", compress=compress.geno, closezip=TRUE)
+    add.gdsn(ngen, "extra", storage="int16", compress=compress.geno,
+        closezip=TRUE)
     # additional nodes for phase data
     n <- add.gdsn(npha, "extra.index", storage="int32", valdim=c(3L,0L),
         compress=compress.geno, closezip=TRUE)
     put.attr.gdsn(n, "R.colnames",
         c("sample.index", "variant.index", "length"))
-    add.gdsn(npha, "extra", storage="bit1", compress=compress.geno, closezip=TRUE)
+    add.gdsn(npha, "extra", storage="bit1", compress=compress.geno,
+        closezip=TRUE)
 
     # add annotation/qual
-    n <- add.gdsn(nann, "qual", storage="float", compress=compress.annotation)
+    n <- add.gdsn(nann, "qual", storage="float", compress=compress.annot)
     SeqArray:::.append_rep_gds(n, NaN, nvar)
     readmode.gdsn(n)
     if (verbose) cat("    annotation/qual")
     SeqArray:::.DigestCode(n, digest, verbose)
 
     # add filter
-    n <- add.gdsn(nann, "filter", storage="int32", compress=compress.annotation)
+    n <- add.gdsn(nann, "filter", storage="int32", compress=compress.annot)
     SeqArray:::.append_rep_gds(n, as.raw(1L), nvar)
     readmode.gdsn(n)
     put.attr.gdsn(n, "R.class", "factor")
@@ -682,11 +689,11 @@ seqPGEN2GDS <- function(pgen.fn, pvar.fn=NULL, psam.fn=NULL, out.gdsfn,
 
     # optimize access efficiency
     if (verbose)
-        if (optimize) .cat("Done.  # ", .tm()) else cat("Done.\n")
+        if (optimize) .cat("Done.  # ", .tm()) else .cat("Done.")
     if (optimize)
     {
         if (verbose)
-            cat("Optimize the access efficiency ...\n")
+            .cat("Optimize the access efficiency ...")
         cleanup.gds(out.gdsfn, verbose=verbose)
     }
     if (verbose) .cat("##> ", .tm())
