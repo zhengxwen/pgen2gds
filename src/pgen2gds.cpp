@@ -29,6 +29,7 @@
 #undef private
 
 #include <vector>
+#include <ctime>
 
 using namespace std;
 using namespace CoreArray;
